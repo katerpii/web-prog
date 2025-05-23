@@ -1,0 +1,35 @@
+server:
+    port: 3030
+spring:
+    application:
+        name: demo
+    datasource:
+        url: jdbc:mysql://localhost:3307/database
+        username: user
+        password: 1234
+        driver-class-name: com.mysql.cj.jdbc.Driver
+    
+    jpa:
+        database-platform: org.hibernate.dialect.MySQL8Dialect
+        hibernate:
+            ddl-auto: create
+        show-sql: true
+
+oauth:
+  google:
+    client-id: ${OAUTH_GOOGLE_CLIENT_ID:default-client-id}
+    client-secret: ${OAUTH_GOOGLE_CLIENT_SECRET:default-client-secret}
+    redirect-uri: ${OAUTH_GOOGLE_REDIRECT_URI:default-redirect-uri}
+  github:
+    client-id: ${OAUTH_GITHUB_CLIENT_ID:default-client-id}
+    client-secret: ${OAUTH_GITHUB_CLIENT_SECRET:default-client-secret}
+    redirect-uri: ${OAUTH_GITHUB_REDIRECT_URI:default-redirect-uri}
+    
+# spring.datasource.url=jdbc:mysql://localhost:3306/testDB
+# spring.datasource.username=user
+# spring.datasource.password=1234
+# spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# spring.jpa.database-platform=org.hibernate.dialect.MySQL8Dialect
+# spring.jpa.hibernate.ddl-auto=update
+# spring.jpa.show-sql=true

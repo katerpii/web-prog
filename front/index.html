@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Side Project</title>
+  <link rel="stylesheet" href="index.css?v=1.2.3">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="./auth.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="bck-image">
+      <img alt="" src="./images/gradients_3.png" referrerpolicy="same-origin" style="display: block; 
+      object-fit: cover; border-radius: 0px; width: 100%; height: 30vh; max-height: 280px; opacity: 1; 
+      object-position: center 60%;">
+    </div>
+
+    <h1>Side Project</h1>
+    <hr><br>
+    <!-- 상단 버튼 영역 -->
+    <div class="top-buttons">
+      <div id="user-name"></div>
+      <button>공유하기 🔗</button>
+      <button>깃허브 링크</button>
+      <button class="login-btn">로그인</button>
+      <button class="logout-btn" style="display: none;">로그아웃</button>
+      <button>초대하기</button>
+    </div>
+
+    <section class="board">
+      <br>
+      <h2>BOARD</h2>
+      <div class="board-columns">
+        <div class="column" data-status="Scheduled">
+          <h3>Scheduled <button class="add-btn">+</button></h3>
+          <div class="card-list"></div>
+        </div>
+        <div class="column" data-status="In Progress">
+          <h3>In Progress <button class="add-btn">+</button></h3>
+          <div class="card-list"></div>
+        </div>
+        <div class="column" data-status="Done">
+          <h3>Done <button class="add-btn">+</button></h3>
+          <div class="card-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- card modal-->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <h3>새 카드 추가</h3>
+        <label for="task-name">이름:</label>
+        <input type="text" id="task-name" required>
+        <label for="task-owner">담당자:</label>
+        <input type="text" id="task-owner" required>
+        <label for="task-start">시작일:</label>
+        <input type="date" id="task-start">
+        <label for="task-end">종료일:</label>
+        <input type="date" id="task-end">
+        <button id="add-card-confirm">추가</button>
+        <button id="modal-close">닫기</button>
+      </div>
+    </div>
+
+    <!-- card detail -->
+    <div id="detail-modal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="detail-close">&times;</span>
+        <h2>카드 상세정보</h2>
+        <p id="detail-title"></p>
+        <p id="detail-owner"></p>
+        <p id="detail-dates"></p>
+      </div>
+    </div>
+
+    <div id="login-popup">
+      <input class="google-login" type="button" value="구글 로그인">
+      <input class="github-login" type="button" value="깃허브 로그인">
+      <button class="close-popup">닫기</button>   
+    </div>
+
+    <script src="index.js"></script>
+
+    <!-- Calender & Gantt chart-->
+    <section class="calendar">
+      <h2>GANTT CHART</h2>
+      <div class="tab-buttons">
+        <button class="tab active" onclick="switchTab('calendar')">📅 캘린더</button>
+        <button class="tab" onclick="switchTab('gantt')">📈 간트차트</button>
+      </div>
+      <div id="calendar-view" class="tab-content active">
+        <div id="calendar-header">
+          <button onclick="changeMonth(-1)">◀</button>
+          <span id="month-year"></span>
+          <button onclick="changeMonth(1)">▶</button>
+        </div>
+        <div class="calendar">
+          <div class="day-names">
+            <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+          </div>
+          <div id="calendar-days" class="days-grid">
+            <div></div>
+          </div>
+        </div>
+      </div>
+      <div id="gantt-view" class="tab-content">
+        <div class="gantt-month-label"></div>
+        <div class="gantt-box">
+          <div id="gantt-chart"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="main-layout">
+      <div class="document-sidebar">
+      <h2>Documents 🔌</h2>
+      <ul class="doc-list">
+        <li>
+          📄 API 명세 
+          <div class="list-box">
+            <div class="column">README.md</div>
+          </div>
+        </li>
+        <li>📄 회의록 
+          <div class="list-box">
+            <input type="file" default="asd">
+          </div>
+        </li>
+        <li>📄 프로젝트 제안서
+          <div class="list-box">
+            <div class="column">파일 업로드</div>
+          </div>
+        </li>
+        <li>📄 프로젝트 계획서
+          <div class="list-box">
+            <div class="column">파일 업로드</div>
+          </div>
+        </li>
+        <li>📄 시스템 요구사항 명세서
+          <div class="list-box">
+            <div class="column">파일 업로드</div>
+          </div>
+        </li>
+        <li>📄 시스템 설계 명세서
+          <div class="list-box">
+            <div class="column">파일 업로드</div>
+          </div>
+        </li>
+        <li>📄 프로젝트 최종 보고서
+          <div class="list-box">
+            <div class="column">파일 업로드</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="memo-sidebar">
+      <h3>📝 메모장</h3>
+      <textarea placeholder="여기에 메모를 작성하세요.."></textarea>
+    </div>
+    </section>
+
+  </div>
+
+  <script src="index.js"></script>
+</body>
+</html>

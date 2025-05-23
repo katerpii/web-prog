@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./back/demo
+      dockerfile: Dockerfile
+    container_name: localhost
+    ports:
+      - "3030:3030"  
+    networks:
+      - app-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/database
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=1234
+
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: nginx_frontend
+    ports:
+      - "3000:3000"  
+    volumes:
+      - ./front:/usr/share/nginx/html  
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: database
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: database
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 1234
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
+volumes:
+  mysql_data:
+
+networks:
+  app-network:
+    driver: bridge
