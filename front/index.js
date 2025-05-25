@@ -71,10 +71,16 @@ $(document).ready(function () {
   const $modal = $('#modal');
   const $detailModal = $('#detail-modal');
 
-  $(document).on('click', '.add-btn', function () {
-    targetColumn = $(this).closest('.column').find('.card-list');
-    $modal.show();
+  $(document).on('click', '.add-btn', function (e) {
+  if (!$('body').hasClass('logged-in')) {
+    alert("로그인 후 사용할 수 있습니다.");
+    return;
+  }
+
+  targetColumn = $(this).closest('.column').find('.card-list');
+  $modal.show();
   });
+
 
   $('#modal-close').on('click', function () {
     $modal.hide();
@@ -89,7 +95,7 @@ $(document).ready(function () {
     const name = $('#task-name').val().trim();
     const owner = $('#task-owner').val().trim();
     const startDate = $('#task-start').val();
-    const endDate = $('#task-end').val(); `q`
+    const endDate = $('#task-end').val(); 
 
     if (!name || !owner) {
       alert("모든 항목을 입력하세요.");
@@ -124,7 +130,8 @@ $(document).ready(function () {
     $modal.hide();
     clearModalInputs();
   });
-
+  
+   //드래그 앤 드롭 이벤트 
   $('.column').on('dragover', function (e) {
     e.preventDefault();
     $(this).addClass('drag-over');

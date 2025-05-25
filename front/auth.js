@@ -1,93 +1,134 @@
+$(document).ready(function () {
+  const $modal = $('#modal');
 
+  // 로그인 여부 확인
+  $.ajax({
+    url: 'http://localhost:3030/auth/check',
+    method: 'GET',
+    xhrFields: { withCredentials: true },
+    success: function (user) {
+      $('.login-btn').hide();
+      $('.logout-btn').show();
+      $('#user-name').text(`${user.username || user.userEmail || '사용자'} 's Project`);
+      $('body').addClass('logged-in');
+      loadUserPage(user.id);
+    },
+    error: function () {
+      $('.login-btn').show();
+      $('.logout-btn').hide();
+    }
+  });
 
-$(document).ready(function (){
-    const $modal = $('#modal'); 
+  // 로그아웃
+  $('.logout-btn').on('click', function () {
     $.ajax({
-        url: 'http://localhost:3030/auth/check',
-        method: 'GET',
-        xhrFields: {
-            withCredentials: true
-        },
-        success: function (user) {
-            $('.login-btn').hide();
-            $('.logout-btn').show();
-            $('#user-name').text(`${user.username || user.userEmail || '사용자'} 's Project`);
-        
-            $('body').addClass('logged-in');
-            loadUserPage(user.id);
-        },
-        error: function() {
-            $('.login-btn').show();
-            $('.logout-btn').hide();
-        }
-    })
-    $('.logout-btn').on('click', function () {
-      $.ajax({
-        url: 'http://localhost:3030/auth/logout',
-        method: 'POST',
-        xhrFields: {
-          withCredentials: true
-        },
-        success: function () {
-          location.reload(); // 새로고침으로 초기화
-        }
-      });
+      url: 'http://localhost:3030/auth/logout',
+      method: 'POST',
+      xhrFields: { withCredentials: true },
+      success: function () {
+        location.reload();
+      }
+    });
+  });
+
+  // 유저 페이지 불러오기
+  function loadUserPage(userId) {
+    $.ajax({
+      url: `http://localhost:3030/user/${userId}/page`,
+      method: 'GET',
+      xhrFields: { withCredentials: true },
+      success: function (pageData) {
+        displayPageData(pageData);
+      },
+      error: function () {
+        console.log("fetch data failed");
+      }
+    });
+  }
+
+  // 카드 드래그 이벤트 바인딩
+  function addDragAndDropEvents($card) {
+    $card.attr('draggable', true);
+
+    $card.on('dragstart', function (e) {
+      e.originalEvent.dataTransfer.setData('text/plain', $(this).text());
+      $(this).addClass('dragging');
     });
 
-    function loadUserPage(Id){
-      $.ajax({
-        url: `http://localhost:3030/user/${Id}/page`,
-        method: 'GET',
-        xhrFields: {
-            withCredentials: true 
-        },
-        success: function (pageData){
-          displayPageData(pageData);
-        },
-        error: function() {
-          console.log("fetch data failed");
-        }
-      });
-    }
+    $card.on('dragend', function () {
+      $(this).removeClass('dragging');
+    });
+  }
 
-function displayPageData(pageData) {
-    $('#page-name').text(pageData.pagename);  // 페이지 이름
-    $('#github-url').attr('href', pageData.githubUrl);  // GitHub 링크
+  // 컬럼 드래그 이벤트 바인딩
+  function bindColumnDropEvents() {
+    $('.board-columns .column').off('dragover dragleave drop'); // 중복 방지
 
+    $('.board-columns .column').on('dragover', function (e) {
+      e.preventDefault();
+      $(this).addClass('drag-over');
+    });
+
+    $('.board-columns .column').on('dragleave', function () {
+      $(this).removeClass('drag-over');
+    });
+
+    $('.board-columns .column').on('drop', function (e) {
+      e.preventDefault();
+      $(this).removeClass('drag-over');
+
+      const $draggingCard = $('.dragging');
+      if ($draggingCard.length) {
+        $(this).find('.card-list').append($draggingCard);
+        const status = $(this).data('status');
+        applyStatusStyle($draggingCard, status);
+        renderGanttChart();
+        saveCardDataToDB($draggingCard);
+      }
+    });
+  }
+
+  // 카드 및 컬럼 렌더링
+  function displayPageData(pageData) {
+    $('#page-name').text(pageData.pagename);
+    $('#github-url').attr('href', pageData.githubUrl);
     $('.board-columns').empty();
 
-    // boards가 null 또는 undefined일 경우 빈 배열로 처리
     if (pageData.boards && pageData.boards.length > 0) {
-        pageData.boards.forEach(board => {
-            let boardHtml = `<div class="column" data-status="${board.status}">
-                                <h3>${board.status} <button class="add-btn">+</button></h3>
-                                <div class="card-list" data-board-id="${board.id}"></div>d
-                              </div>`;
+      pageData.boards.forEach(board => {
+        let boardHtml = `
+          <div class="column" data-status="${board.status}">
+            <h3>${board.status} <button class="add-btn">+</button></h3>
+            <div class="card-list" data-board-id="${board.id}"></div>
+          </div>`;
+        $('.board-columns').append(boardHtml);
+      });
 
-            // cards가 null 또는 undefined일 경우 빈 배열로 처리
-            if (board.cards && board.cards.length > 0) {
-                board.cards.forEach(card => {
-                    let cardHtml = `<div class="card">
-                                    <span>${card.name}</span>
-                                    <span>${card.startDate} ~ ${card.endDate}</span>
-                                    <span>${card.author}</span>
-                                </div>`;
-                    $(`.board-columns .column[data-status="${board.status}"] .card-list`).append(cardHtml);
-                });
-            }
+      // 카드 추가
+      pageData.boards.forEach(board => {
+        if (board.cards && board.cards.length > 0) {
+          board.cards.forEach(card => {
+            let $card = $(`<div class="card" draggable="true">
+                            <span>${card.name}</span>
+                            <span>${card.startDate} ~ ${card.endDate}</span>
+                            <span>${card.author}</span>
+                          </div>`);
+            addDragAndDropEvents($card);
+            $(`.column[data-status="${board.status}"] .card-list`).append($card);
+          });
+        }
 
-            $('.board-columns').append(boardHtml);
-            $('.board-columns .column[data-status="'+ board.status +'"] .add-btn').on('click', function () {
-                targetColumn = $(this).closest('.column').find('.card-list');
-                $modal.show();
-            });
+        // 카드 생성 버튼 이벤트
+        $(`.column[data-status="${board.status}"] .add-btn`).on('click', function () {
+          targetColumn = $(this).closest('.column').find('.card-list');
+          $modal.show();
         });
+      });
+
+      // 드래그앤드롭 바인딩
+      bindColumnDropEvents();
     } else {
-        console.error("No boards available in the pageData.");
+      console.error("No boards available in the pageData.");
     }
-}
-
-
-})
-
-
+  }
+});
