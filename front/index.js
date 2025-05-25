@@ -13,11 +13,7 @@ $(document).ready(function() {
 
   $('.google-login').on('click', function () {
     $.ajax({
-<<<<<<< HEAD
       url: 'http://localhost:3030/login/oauth2/google',
-=======
-      url: 'http://localhost:3030/login/oauth2',
->>>>>>> 0831ed563fd7694b6b7a5806f0b17179875d967b
       method: 'GET',
       xhrFields: {
         withCredentials: true
