@@ -33,7 +33,7 @@ public class AuthCallbackGithubController {
 
     public AuthCallbackGithubController(
         UserRepository userRepository,
-        @Qualifier("githubAuthService") AuthService authService
+    @Qualifier("githubAuthService") AuthService authService
     ) {
         this.userRepository = userRepository;
         this.authService = authService;
