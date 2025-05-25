@@ -63,6 +63,8 @@ public class LoginController {
     public ResponseEntity<CheckUserDto> checkAuth(HttpSession session) {
         SessionValue sessionValue = (SessionValue) session.getAttribute("AUTH_SESSION_USER");
 
+        System.out.println("세션 사용자 정보: " + session.getAttribute("AUTH_SESSION_USER"));
+
         if (sessionValue == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

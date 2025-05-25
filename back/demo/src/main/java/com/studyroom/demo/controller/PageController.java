@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,7 +34,6 @@ import java.util.UUID;
 import javax.smartcardio.CardPermission;
 
 import org.springframework.web.bind.annotation.RequestBody;
-
 
 @RestController
 @RequiredArgsConstructor
@@ -90,9 +90,6 @@ public class PageController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
 
-    
-    
-    
     @PostMapping("/api/save")
     public ResponseEntity<?> saveData(@RequestBody CardDataDto data) {
         Board board = boardRepository.findByStatus(data.getStatus());
@@ -100,18 +97,18 @@ public class PageController {
         if (board == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid board status.");
         
         Card card = Card.builder()
-        .cardName(data.getCardName())
-        .author(data.getAuthor())
-        .startDate(data.getStartDate())
-        .endDate(data.getEndDate())
-        .board(board)  // Board와 연결
-        .page(board.getPage())
-        .build();
+            .cardName(data.getCardName())
+            .author(data.getAuthor())
+            .startDate(data.getStartDate())
+            .endDate(data.getEndDate())
+            .board(board)
+            .page(board.getPage())
+            .build();
         
-        
-        cardRepository.save(card);
+        Card saved = cardRepository.save(card);
 
-        return ResponseEntity.ok("Card data saved successfully");
+        // cardId 반환
+        return ResponseEntity.ok(Map.of("cardId", saved.getCardId()));
     }
 
     private List<Board> createBoards() {
@@ -130,8 +127,20 @@ public class PageController {
     
         return boards;
     }
-    
 
+    @PatchMapping("/api/card/{id}/move")
+    public ResponseEntity<?> moveCard(@PathVariable Integer id, @RequestBody Map<String, String> body) {
+    Optional<Card> optionalCard = cardRepository.findById(id);
+    if (!optionalCard.isPresent()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Card not found");
 
+    Card card = optionalCard.get();
+    String newStatus = body.get("status");
+    Board newBoard = boardRepository.findByStatus(newStatus);
+    if (newBoard == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid board status");
+
+    card.setBoard(newBoard);
+    cardRepository.save(card);
+    return ResponseEntity.ok("Board updated");
 }
 
+}

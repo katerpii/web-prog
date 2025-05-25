@@ -33,7 +33,7 @@ public class AuthCallbackGithubController {
 
     public AuthCallbackGithubController(
         UserRepository userRepository,
-    @Qualifier("githubAuthService") AuthService authService
+        @Qualifier("githubAuthService") AuthService authService
     ) {
         this.userRepository = userRepository;
         this.authService = authService;
@@ -43,9 +43,11 @@ public class AuthCallbackGithubController {
 
     @GetMapping
     public ResponseEntity<?> handleGithubAuthCallback(@RequestParam("code") String code, @RequestParam("state") String state, HttpSession session, HttpServletResponse response) throws IOException {
-
+        System.out.println("✅ GitHub 콜백 진입");
         String accessToken = authService.getAccessToken(code);
+        System.out.println("✅ GitHub access token: " + accessToken);
         JsonNode userInfo = (JsonNode)authService.fetchUserInfo(accessToken);
+        System.out.println("✅ 사용자 정보: " + userInfo);
         
         String email = userInfo.get("email").asText();
         String name = userInfo.has("name") ? userInfo.get("name").asText() : "사용자";
@@ -64,6 +66,7 @@ public class AuthCallbackGithubController {
         }
 
         session.setAttribute(jsessionid, new SessionValue(accessToken, user));
+        System.out.println("✅ 세션 저장 완료");
         response.sendRedirect("http://localhost:3000/index.html");
 
         return ResponseEntity.ok().build();

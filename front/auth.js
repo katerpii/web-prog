@@ -57,6 +57,7 @@ $(document).ready(function () {
 
     $card.on('dragend', function () {
       $(this).removeClass('dragging');
+      updateCardStatus($(this)); // 상태 업데이트 추가
     });
   }
 
@@ -83,7 +84,7 @@ $(document).ready(function () {
         const status = $(this).data('status');
         applyStatusStyle($draggingCard, status);
         renderGanttChart();
-        saveCardDataToDB($draggingCard);
+        updateCardStatus($draggingCard);
       }
     });
   }
@@ -108,7 +109,7 @@ $(document).ready(function () {
       pageData.boards.forEach(board => {
         if (board.cards && board.cards.length > 0) {
           board.cards.forEach(card => {
-            let $card = $(`<div class="card" draggable="true">
+            let $card = $(`<div class="card" draggable="true" data-id="${card.id}">
                             <span>${card.name}</span>
                             <span>${card.startDate} ~ ${card.endDate}</span>
                             <span>${card.author}</span>
@@ -132,3 +133,24 @@ $(document).ready(function () {
     }
   }
 });
+
+
+function updateCardStatus($card) {
+  const cardId = $card.data("id");
+  const newStatus = $card.closest(".column").data("status");
+
+  if (!cardId || !newStatus) return;
+
+  $.ajax({
+    url: `http://localhost:3030/api/card/${cardId}/move`,
+    method: "PATCH",
+    contentType: "application/json",
+    data: JSON.stringify({ status: newStatus }),
+    success: function () {
+      console.log("카드 상태 업데이트 완료");
+    },
+    error: function (xhr) {
+      alert("카드 상태 업데이트 실패: " + xhr.responseText);
+    }
+  });
+}

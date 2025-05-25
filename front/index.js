@@ -68,6 +68,7 @@ $(document).ready(function() {
 })
 
 $(document).ready(function () {
+  // 각 column에는 반드시 data-status 속성이 있어야 합니다 (예: data-status="Done")
   const $modal = $('#modal');
   const $detailModal = $('#detail-modal');
 
@@ -103,12 +104,39 @@ $(document).ready(function () {
     }
 
     const $newCard = $('<div class="card"></div>');
-    $newCard.attr({
-      'data-name': name,
-      'data-owner': owner,
-      'data-start': startDate,
-      'data-end': endDate
+    
+    $.ajax({
+      url: "http://localhost:3030/api/save",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        cardName: name,
+        author: owner,
+        startDate: startDate,
+        endDate: endDate,
+        status: targetColumn.closest('.column').data('status') // 현재 칼럼의 상태
+      }),
+      success: function (response) {
+        console.log("카드 저장 완료");
+        const realCardId = response.cardId;
+        // 생성된 카드 DOM에 data-  id 추가 (여기선 임의로 가정, 실제 구현 시 응답값에서 id 추출 필요)
+        $newCard.attr({
+          'data-name': name,
+          'data-owner': owner,
+          'data-start': startDate,
+          'data-end': endDate,
+          'data-id': realCardId // 실제로는 서버에서 받은 ID로 대체
+        });
+
+        targetColumn.append($newCard);
+        $('#modal').hide();
+        clearModalInputs();
+      },
+      error: function (xhr) {
+        alert("카드 저장 실패: " + xhr.responseText);
+      }
     });
+    
     $newCard.html(`<strong>${name}</strong><br><small>${owner}</small>`);
 
     $newCard.on('click', function () {
@@ -151,7 +179,7 @@ $(document).ready(function () {
       const status = $(this).data('status');
       applyStatusStyle($draggingCard, status);
       renderGanttChart();
-      saveCardDataToDB($draggingCard)
+      updateCardStatus($draggingCard);
     }
   });
 
@@ -334,6 +362,8 @@ function saveCardDataToDB($card) {
     cardName: $card.data('name'),
     author: $card.data('owner'),
     startDate: $card.data('start'),
+
+
     endDate: $card.data('end'),
     status: $card.closest('.column').data('status'),  // 컬럼의 상태(Scheduled, In Progress, Done)
   };
@@ -348,6 +378,53 @@ function saveCardDataToDB($card) {
     },
     error: function (error) {
       console.error('Failed to save card data', error);
+    }
+  });
+}
+
+
+
+// 🧩 카드 드래그앤드롭 후 상태(board) 업데이트 처리
+$(document).on("dragend", ".card", function () {
+  const $card = $(this);
+  const cardId = $card.data("id"); // 카드 ID는 생성 시 data-id로 설정되어 있어야 함
+  const newBoard = $card.closest(".column").data("status"); // column div에 data-status 필요
+
+  if (!cardId || !newBoard) {
+    console.warn("카드 ID 또는 새로운 보드 상태가 없습니다.");
+    return;
+  }
+
+  $.ajax({
+    url: `http://localhost:3030/api/card/${cardId}/move`,
+    method: "PATCH",
+    contentType: "application/json",
+    data: JSON.stringify({ status: newBoard }),
+    success: function () {
+      console.log("카드 상태가 성공적으로 변경되었습니다.");
+    },
+    error: function (xhr) {
+      alert("카드 이동 실패: " + xhr.responseText);
+    }
+  });
+});
+
+function updateCardStatus($card) {
+  const cardId = $card.data("id");
+  const newStatus = $card.closest(".column").data("status");
+
+  if (!cardId || !newStatus) return;
+
+  $.ajax({
+    url: `http://localhost:3030/api/card/${cardId}/move`,
+    method: "PATCH",
+    contentType: "application/json",
+    data: JSON.stringify({ status: newStatus }),
+    success: function () {
+      console.log("카드 상태 업데이트 완료");
+    },
+    error: function (xhr) {
+      alert("카드 상태 업데이트 실패: " + xhr.responseText);
     }
   });
 }
