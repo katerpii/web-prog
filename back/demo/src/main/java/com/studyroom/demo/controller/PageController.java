@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -130,17 +131,27 @@ public class PageController {
 
     @PatchMapping("/api/card/{id}/move")
     public ResponseEntity<?> moveCard(@PathVariable Integer id, @RequestBody Map<String, String> body) {
-    Optional<Card> optionalCard = cardRepository.findById(id);
-    if (!optionalCard.isPresent()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Card not found");
+        Optional<Card> optionalCard = cardRepository.findById(id);
+        if (!optionalCard.isPresent()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Card not found");
 
-    Card card = optionalCard.get();
-    String newStatus = body.get("status");
-    Board newBoard = boardRepository.findByStatus(newStatus);
-    if (newBoard == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid board status");
+        Card card = optionalCard.get();
+        String newStatus = body.get("status");
+        Board newBoard = boardRepository.findByStatus(newStatus);
+        if (newBoard == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid board status");
 
-    card.setBoard(newBoard);
-    cardRepository.save(card);
-    return ResponseEntity.ok("Board updated");
-}
+        card.setBoard(newBoard);
+        cardRepository.save(card);
+        return ResponseEntity.ok("Board updated");
+    }
 
+    @DeleteMapping("/api/card/{id}")
+    public ResponseEntity<?> deleteCard(@PathVariable Integer id) {
+        Optional<Card> optionalCard = cardRepository.findById(id);
+        if (!optionalCard.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Card not found");
+        }
+
+        cardRepository.delete(optionalCard.get());
+        return ResponseEntity.ok("Card deleted successfully");
+    }
 }

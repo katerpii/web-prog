@@ -128,6 +128,12 @@ $(document).ready(function () {
           'data-id': realCardId // 실제로는 서버에서 받은 ID로 대체
         });
 
+        $newCard.html(`
+          <strong>${name}</strong><br>
+          <small>${owner}</small>
+          <button class="delete-card-btn">삭제</button>
+        `);
+
         targetColumn.append($newCard);
         $('#modal').hide();
         clearModalInputs();
@@ -137,8 +143,6 @@ $(document).ready(function () {
       }
     });
     
-    $newCard.html(`<strong>${name}</strong><br><small>${owner}</small>`);
-
     $newCard.on('click', function () {
       $('#detail-title').text(`이름: ${$(this).data('name')}`);
       $('#detail-owner').text(`담당자: ${$(this).data('owner')}`);
@@ -190,6 +194,32 @@ $(document).ready(function () {
 
   renderCalendar(currentDate); // 캘린더 초기화
   connectGanttScrollToMonthLabel(); // Gantt 스크롤 연동
+});
+
+// 카드 삭제 버튼 추가 및 이벤트 처리
+$(document).on('click', '.delete-card-btn', function () {
+  if (!confirm("정말로 이 카드를 삭제하시겠습니까?")) return;
+
+  const $card = $(this).closest('.card');
+  const cardId = $card.data('id');
+
+  if (!cardId) {
+    alert("카드 ID를 찾을 수 없습니다.");
+    return;
+  }
+
+  $.ajax({
+    url: `http://localhost:3030/api/card/${cardId}`,
+    method: "DELETE",
+    success: function () {
+      console.log("카드 삭제 완료");
+      $card.remove();
+      renderGanttChart(); // Gantt 차트 갱신
+    },
+    error: function (xhr) {
+      alert("카드 삭제 실패: " + xhr.responseText);
+    }
+  });
 });
 
 function applyStatusStyle($card, status) {
