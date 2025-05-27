@@ -1,15 +1,63 @@
 let targetColumn = null;
 
-$(document).ready(function() {
-  const $popup = $('#login-popup')
+$(document).ready(function () {
+  const $popup = $('#login-popup');
+  const $modal = $('#modal');
+  const $detailModal = $('#detail-modal');
 
+  // 로그인 버튼
   $('.login-btn').on('click', function () {
     $popup.show();
-  })
+  });
 
   $('.close-popup').on('click', function () {
     $popup.hide();
-  })
+  });
+
+  // 초대하기 버튼 클릭 시 초대 모달 표시
+  $('.top-buttons button:contains("초대하기")').click(function () {
+    $('#invite-modal').show();
+  });
+
+  // 초대 모달 닫기 버튼
+  $('#invite-close').click(function () {
+    $('#invite-modal').hide();
+    $('#invite-email').val('');
+  });
+
+  // 초대 확인 버튼 클릭 시 처리
+  $('#invite-confirm').click(function () {
+    const email = $('#invite-email').val().trim();
+
+    if (!email) {
+      alert('이메일을 입력해주세요.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('올바른 이메일 주소를 입력해주세요.');
+      return;
+    }
+
+    $.ajax({
+      url: 'http://localhost:3030/api/invite',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({ email: email }),
+      xhrFields: {
+        withCredentials: true
+      },
+      success: function () {
+        alert('초대 이메일이 전송되었습니다.');
+        $('#invite-modal').hide();
+        $('#invite-email').val('');
+      },
+      error: function () {
+        alert('초대 요청에 실패했습니다. 다시 시도해주세요.');
+      }
+    });
+  });
 
   $('.google-login').on('click', function () {
     $.ajax({
@@ -23,21 +71,19 @@ $(document).ready(function() {
         const loginUrl =
           `${auth.authorizationEndpoint}?` +
           `client_id=${encodeURIComponent(auth.clientId)}` +
-          `&redirect_uri=${encodeURIComponent(auth.redirectUrl)}` + 
+          `&redirect_uri=${encodeURIComponent(auth.redirectUrl)}` +
           `&response_type=${encodeURIComponent(auth.responseType)}` +
           `&scope=${encodeURIComponent(auth.scope)}` +
-          `&state=${encodeURIComponent(auth.state)}`+
+          `&state=${encodeURIComponent(auth.state)}` +
           `&prompt=consent`;
 
         window.location.href = loginUrl;
-        
       },
       error: function (error) {
         console.error('로그인 요청 실패:', error);
       }
-    }); 
-    
-  });   
+    });
+  });
 
   $('.github-login').on('click', function () {
     $.ajax({
@@ -51,37 +97,29 @@ $(document).ready(function() {
         const loginUrl =
           `${auth.authorizationEndpoint}?` +
           `client_id=${encodeURIComponent(auth.clientId)}` +
-          `&redirect_uri=${encodeURIComponent(auth.redirectUrl)}` + 
+          `&redirect_uri=${encodeURIComponent(auth.redirectUrl)}` +
           `&response_type=${encodeURIComponent(auth.responseType)}` +
           `&scope=${encodeURIComponent(auth.scope)}` +
-          `&state=${encodeURIComponent(auth.state)}`+
+          `&state=${encodeURIComponent(auth.state)}` +
           `&prompt=consent`;
 
         window.location.href = loginUrl;
-        
       },
       error: function (error) {
         console.error('로그인 요청 실패:', error);
       }
     });
   });
-})
-
-$(document).ready(function () {
-  // 각 column에는 반드시 data-status 속성이 있어야 합니다 (예: data-status="Done")
-  const $modal = $('#modal');
-  const $detailModal = $('#detail-modal');
 
   $(document).on('click', '.add-btn', function (e) {
-  if (!$('body').hasClass('logged-in')) {
-    alert("로그인 후 사용할 수 있습니다.");
-    return;
-  }
+    if (!$('body').hasClass('logged-in')) {
+      alert("로그인 후 사용할 수 있습니다.");
+      return;
+    }
 
-  targetColumn = $(this).closest('.column').find('.card-list');
-  $modal.show();
+    targetColumn = $(this).closest('.column').find('.card-list');
+    $modal.show();
   });
-
 
   $('#modal-close').on('click', function () {
     $modal.hide();
@@ -96,7 +134,7 @@ $(document).ready(function () {
     const name = $('#task-name').val().trim();
     const owner = $('#task-owner').val().trim();
     const startDate = $('#task-start').val();
-    const endDate = $('#task-end').val(); 
+    const endDate = $('#task-end').val();
 
     if (!name || !owner) {
       alert("모든 항목을 입력하세요.");
@@ -104,7 +142,7 @@ $(document).ready(function () {
     }
 
     const $newCard = $('<div class="card"></div>');
-    
+
     $.ajax({
       url: "http://localhost:3030/api/save",
       method: "POST",
@@ -119,13 +157,12 @@ $(document).ready(function () {
       success: function (response) {
         console.log("카드 저장 완료");
         const realCardId = response.cardId;
-        // 생성된 카드 DOM에 data-  id 추가 (여기선 임의로 가정, 실제 구현 시 응답값에서 id 추출 필요)
         $newCard.attr({
           'data-name': name,
           'data-owner': owner,
           'data-start': startDate,
           'data-end': endDate,
-          'data-id': realCardId // 실제로는 서버에서 받은 ID로 대체
+          'data-id': realCardId
         });
 
         $newCard.html(`
@@ -142,7 +179,7 @@ $(document).ready(function () {
         alert("카드 저장 실패: " + xhr.responseText);
       }
     });
-    
+
     $newCard.on('click', function () {
       $('#detail-title').text(`이름: ${$(this).data('name')}`);
       $('#detail-owner').text(`담당자: ${$(this).data('owner')}`);
@@ -162,8 +199,7 @@ $(document).ready(function () {
     $modal.hide();
     clearModalInputs();
   });
-  
-   //드래그 앤 드롭 이벤트 
+
   $('.column').on('dragover', function (e) {
     e.preventDefault();
     $(this).addClass('drag-over');
@@ -187,16 +223,14 @@ $(document).ready(function () {
     }
   });
 
-  // 오늘 날짜 마커 추가
   const today = new Date();
   const dateStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
   $('.gantt-box').append(`<div style="padding-top: 10px;">📅 오늘: ${dateStr}</div>`);
 
-  renderCalendar(currentDate); // 캘린더 초기화
-  connectGanttScrollToMonthLabel(); // Gantt 스크롤 연동
+  renderCalendar(currentDate);
+  connectGanttScrollToMonthLabel();
 });
 
-// 카드 삭제 버튼 추가 및 이벤트 처리
 $(document).on('click', '.delete-card-btn', function () {
   if (!confirm("정말로 이 카드를 삭제하시겠습니까?")) return;
 
@@ -214,7 +248,7 @@ $(document).on('click', '.delete-card-btn', function () {
     success: function () {
       console.log("카드 삭제 완료");
       $card.remove();
-      renderGanttChart(); // Gantt 차트 갱신
+      renderGanttChart();
     },
     error: function (xhr) {
       alert("카드 삭제 실패: " + xhr.responseText);
@@ -346,7 +380,6 @@ function connectGanttScrollToMonthLabel() {
   }
 }
 
-// === 캘린더 ===
 let currentDate = new Date();
 
 function renderCalendar(date) {
@@ -392,14 +425,12 @@ function saveCardDataToDB($card) {
     cardName: $card.data('name'),
     author: $card.data('owner'),
     startDate: $card.data('start'),
-
-
     endDate: $card.data('end'),
-    status: $card.closest('.column').data('status'),  // 컬럼의 상태(Scheduled, In Progress, Done)
+    status: $card.closest('.column').data('status'),
   };
 
   $.ajax({
-    url: 'http://localhost:3030/api/save',  // 서버에서 해당 API 엔드포인트
+    url: 'http://localhost:3030/api/save',
     method: 'POST',
     contentType: 'application/json',
     data: JSON.stringify(cardData),
@@ -412,13 +443,10 @@ function saveCardDataToDB($card) {
   });
 }
 
-
-
-// 🧩 카드 드래그앤드롭 후 상태(board) 업데이트 처리
 $(document).on("dragend", ".card", function () {
   const $card = $(this);
-  const cardId = $card.data("id"); // 카드 ID는 생성 시 data-id로 설정되어 있어야 함
-  const newBoard = $card.closest(".column").data("status"); // column div에 data-status 필요
+  const cardId = $card.data("id");
+  const newBoard = $card.closest(".column").data("status");
 
   if (!cardId || !newBoard) {
     console.warn("카드 ID 또는 새로운 보드 상태가 없습니다.");
