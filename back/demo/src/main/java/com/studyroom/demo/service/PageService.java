@@ -47,7 +47,10 @@ public class PageService {
 
         // if (decodedEmail.equals(CurrentUserEmail)) return true;
         // return false;
-        User currentUser = (User)sessionValue.userInfo();
+        Integer userId = ((User)sessionValue.userInfo()).getId();
+        Optional<User> userOpt = userRepository.findById(userId);
+        User currentUser = userOpt.get();
+        
         byte[] validEmailBytes = Base64.getDecoder().decode(invite);
         String validEmail = new String(validEmailBytes, StandardCharsets.UTF_8);
 

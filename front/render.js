@@ -35,6 +35,10 @@
   // });
 $(document).ready(function () {
   const $modal = $('#modal');
+  const $dropdown = $('#project-dropdown');
+  const $projectTitle = $('.project-title');
+  const $projectList = $('#project-list');
+  const $userName = $('#user-name');
   const params = new URLSearchParams(window.location.search);
   const pageId = params.get("page");
   const invite = params.get("invite");
@@ -43,13 +47,23 @@ $(document).ready(function () {
 
   if (pageId) url.searchParams.append("page", pageId);
   if (invite) url.searchParams.append("invite", invite);
+  // 드롭다운 열고 닫기
+  $('#project-dropdown').on('click', function (e) {
+    e.stopPropagation(); // 이벤트 전파 방지
+    $('#project-list').toggleClass('hidden');
+  });
+
+  // 드롭다운 외부 클릭 시 닫기
+  $(document).on('click', function () {
+    $('#project-list').addClass('hidden');
+  });
 
   $.ajax({
     url: url.toString(),
     method: "GET",
     xhrFields: { withCredentials: true },
     success: function (res) {
-      const { authenticated, hasAccess, isInvite, user } = res;
+      const { authenticated, hasAccess, isInvite, user, userProject, invitedList} = res;
 
       if (!authenticated) {
         console.log("unauthorized");
@@ -64,12 +78,29 @@ $(document).ready(function () {
         console.log("hasAcess");
         $('.login-btn').hide();
         $('.logout-btn').show();
-        $('#user-name').text(`${user.username || user.userEmail || '사용자'} 's Project`);
+        $userName.text(`Hello, ${user.username || user.userEmail || '사용자'}`);
         $('body').addClass('logged-in');
         loadUserPage(user.id, pageId);
-        // $('.login-btn').hide();
-        // $('.logout-btn').show();
-        // $('#user-name').text(`${user.username || user.userEmail || '사용자'} 's Project`);
+        if (userProject){
+          $projectTitle.empty();
+
+          $projectList.empty();
+          $projectList.append(`<div class="project-item" data-id="${userProject.pageId}">${userProject.pagename}</div>`);
+          invitedList.forEach(p => {
+            $projectList.append(`<div class="project-item" data-id="${p.pageId}">${p.pagename}</div>`);
+          });
+          
+          const $activeProject = $projectList.find(`.project-item[data-id="${pageId}"]`);
+          if ($activeProject.length > 0) {
+            $projectTitle.text($activeProject.text());
+          } else {
+            $projectTitle.text("Projects"); // fallback
+          }
+        } else console.log("userProject: none");
+        $('.project-item').on('click', function () {
+          const pid = $(this).data('id');
+          window.location.href = `http://localhost:3000/index?page=${pid}`;
+        });
       } else {
         // $('body').addClass('logged-in');
         window.location.href = `http://localhost:3000/index?page=${user.id}`;

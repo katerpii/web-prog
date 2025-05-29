@@ -15,7 +15,11 @@ import org.springframework.web.client.HttpClientErrorException.BadRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.studyroom.demo.etc.*;
+import com.studyroom.demo.repository.CollaboratorRepository;
+import com.studyroom.demo.repository.UserRepository;
 import com.studyroom.demo.service.PageService;
+import com.studyroom.demo.entity.Collaborator;
+import com.studyroom.demo.entity.Page;
 import com.studyroom.demo.entity.User;
 import com.studyroom.dto.CheckUserDto;
 
@@ -24,14 +28,19 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class LoginController {
     private final PageService pageService;
+    private final CollaboratorRepository collaboratorRepository;
+    private final UserRepository userRepository;
 
     @GetMapping("/login/oauth2/google")
     public ResponseEntity<Map<String, Object>> getGoogleAuthorizeResource() {
@@ -83,8 +92,9 @@ public class LoginController {
         } else { 
             form.put("authenticated", true);
 
-            User user = (User) sessionValue.userInfo();
-            Integer userId = user.getId();
+            Integer userId = ((User) sessionValue.userInfo()).getId();
+            Optional<User> userOpt = userRepository.findById(userId);
+            User user = userOpt.get();
 
             form.put("user", Map.of(
                 "id", userId,
@@ -96,18 +106,38 @@ public class LoginController {
             if (page != null) {
                 boolean hasAccess = pageService.checkUserAccessToPage(userId, page); // required
                 form.put("hasAccess", hasAccess);
+                if (hasAccess) {
+                        Page userPage = user.getPage();
+                        if (userPage != null) {
+                            form.put("userProject", Map.of(
+                                "pageId", userPage.getPageId(),
+                                "pagename", userPage.getPagename()
+                            ));
+                        }
+
+                        // 초대받은 프로젝트
+                        List<Collaborator> invited = collaboratorRepository.findByUser(user);
+                        List<Map<String, Object>> invitedProjects = invited.stream()
+                            .map(collab -> {
+                                Map<String, Object> map = new HashMap<>();
+                                map.put("pageId", collab.getPage().getPageId());
+                                map.put("pagename", collab.getPage().getPagename());
+                                return map;
+                            })
+                            .collect(Collectors.toList());
+
+                        form.put("invitedList", invitedProjects);
+                }
             } else {
-                form.put("hasAcecss", false);
+                form.put("hasAccess", false);
             }
-        } // 세션이 없는 사용자가 invited -> 로그인 후 이메일 검증
-          // 세션이 있는 사용자가 invited -> 해당 세션 이메일 검증
+        } 
         if (invite != null) {
             if (sessionValue == null) form.put("isInvite", true);
             else { pageService.acceptInviteCode(sessionValue, page, invite);}
         } else {
             form.put("isInvite", false);
         }
-        System.out.println("[*] form: ", form);
         return ResponseEntity.ok(form);
     }
 

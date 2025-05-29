@@ -55,7 +55,7 @@ $(document).ready(function () {
         if (invite) redirectUri.searchParams.append("invite", invite);
 
         const state = JSON.stringify({ 
-          is_invite: params.has("invite"),
+          is_invite: params.has("invite"),  
           invite_code: params.get("invite"),
           redirect_uri: redirectUri.toString()
          });

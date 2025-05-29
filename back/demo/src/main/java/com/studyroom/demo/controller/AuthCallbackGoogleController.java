@@ -69,7 +69,7 @@ public class AuthCallbackGoogleController {
             user = userRepository.save(user);
 
             Page page = Page.builder()
-            .pagename("default-page-name") // 페이지 이름
+            .pagename(user.getUsername() + "'s Project") // 페이지 이름
             .githubUrl("https://github.com/") // 예시 GitHub URL
             .user(user) // User와 연결
             .boards(createBoards()) // Board 생성
