@@ -108,5 +108,4 @@ public class InviteController {
 
         return ResponseEntity.ok("초대를 수락했습니다. 협업자로 등록되었습니다.");
     }
-
 }

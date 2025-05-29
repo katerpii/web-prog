@@ -14,7 +14,7 @@ public class SecurityConfig {
             .cors()
             .and()
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login/oauth2/**", "/auth/**", "/api/**", "/user/**").permitAll()
+                .requestMatchers("/login/oauth2/**", "/auth/**", "/api/**", "/user/**","/documents/**").permitAll()
                 .anyRequest().authenticated()
             );
         return http.build();

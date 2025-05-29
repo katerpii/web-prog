@@ -270,6 +270,77 @@ $(document).on('click', '.delete-card-btn', function () {
   });
 });
 
+// ====== 문서 파일 업로드/다운로드/조회 ======
+function loadDocumentList() {
+  $.ajax({
+    url: 'http://localhost:3030/documents/list',
+    method: 'GET',
+    success: function(files) {
+      const $docList = $('.doc-list');
+      // 기존 업로드 파일 목록 제거
+      $docList.find('.uploaded-file').remove();
+      if (files.length === 0) return;
+      files.forEach(function(filename) {
+        const $li = $('<li class="uploaded-file"></li>');
+        $li.text('📄 ' + filename + ' ');
+        const $downloadBtn = $('<button>다운로드</button>');
+        $downloadBtn.on('click', function() {
+          window.location.href = `http://localhost:3030/documents/download/${encodeURIComponent(filename)}`;
+        });
+        const $deleteBtn = $('<button>삭제</button>');
+        $deleteBtn.on('click', function() {
+          if (!confirm('정말 삭제하시겠습니까?')) return;
+          $.ajax({
+            url: `http://localhost:3030/documents/delete/${encodeURIComponent(filename)}`,
+            method: 'DELETE',
+            success: function() {
+              alert('삭제 성공!');
+              loadDocumentList();
+            },
+            error: function() {
+              alert('삭제 실패!');
+            }
+          });
+        });
+        $li.append($downloadBtn).append($deleteBtn);
+        $docList.append($li);
+      });
+    },
+    error: function() {
+      alert('문서 목록을 불러오지 못했습니다.');
+    }
+  });
+}
+
+// 업로드 버튼 이벤트
+$('#file-upload-btn').on('click', function() {
+  const fileInput = document.getElementById('file-upload-input');
+  if (!fileInput.files.length) {
+    alert('업로드할 파일을 선택하세요.');
+    return;
+  }
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  $.ajax({
+    url: 'http://localhost:3030/documents/upload',
+    method: 'POST',
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: function() {
+      alert('업로드 성공!');
+      fileInput.value = '';
+      loadDocumentList();
+    },
+    error: function() {
+      alert('업로드 실패!');
+    }
+  });
+});
+
+// 페이지 로드 시 문서 목록 불러오기
+loadDocumentList();
+
 function applyStatusStyle($card, status) {
   $card.removeClass('scheduled in-progress done');
   if (status === 'Scheduled') $card.addClass('scheduled');
