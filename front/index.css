@@ -327,7 +327,6 @@ body {
   }
   
 #login-popup {
-	display: none;
 	position: fixed;
 	top: 20%;
 	left: 35%;

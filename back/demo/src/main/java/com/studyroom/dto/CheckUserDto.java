@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CheckUserDto {
     private Integer id;
+    private Integer pageId;
     private String username;
     private String userEmail;
 }

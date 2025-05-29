@@ -35,6 +35,8 @@ import java.util.UUID;
 import javax.smartcardio.CardPermission;
 
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -45,27 +47,61 @@ public class PageController {
     private final BoardRepository boardRepository;
     private final CardRepository cardRepository;
 
-    @GetMapping("/user/{id}/page")
-    public ResponseEntity<RenderPageDto> getUserPage(@PathVariable Integer id) {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isPresent()) {
-            Optional<Page> pageOptional = pageRepository.findByUser(user.get());
+    // @GetMapping("/user/{id}/page}")
+    // public ResponseEntity<?> createUserPage(@PathVariable Integer id, @PathVariable Integer pageId) {
+    //     Optional<User> user = userRepository.findById(id);
 
-            if (!pageOptional.isPresent()) {
+    //     if (user.isPresent()) {
+    //         Optional<Page> pageOptional = pageRepository.findByUser(user.get());
+            // Optional<Page> pageOptional = pageRepository.findById(pageId);
+            // if (!pageOptional.isPresent()) {
                 // User와 연결된 새로운 Page 생성
-                Page page = Page.builder()
-                        .pagename("default-page-name") // 페이지 이름
-                        .githubUrl("https://github.com/") // 예시 GitHub URL
-                        .user(user.get()) // User와 연결
-                        .boards(createBoards()) // Board 생성
-                        .cards(new ArrayList<>()) // 빈 카드 목록
-                        .build();
+                // Page page = Page.builder()
+                //         .pagename("default-page-name") // 페이지 이름
+                //         .githubUrl("https://github.com/") // 예시 GitHub URL
+                //         .user(user.get()) // User와 연결
+                //         .boards(createBoards()) // Board 생성
+                //         .cards(new ArrayList<>()) // 빈 카드 목록
+                //         .build();
                 
                 // Page와 연결된 Board의 page 필드 설정
-                page.getBoards().forEach(board -> board.setPage(page));
+                // page.getBoards().forEach(board -> board.setPage(page));
 
-                pageRepository.save(page);
+                // pageRepository.save(page);
 
+                // RenderPageDto form = RenderPageDto.builder()
+                //         .pagename(page.getPagename())
+                //         .githubUrl(page.getGithubUrl())
+                //         .user(page.getUser())
+                //         .boards(page.getBoards())
+                //         .cards(page.getCards())
+                //         .build();
+
+            //     return ResponseEntity.ok().build();
+            // }
+
+            // 이미 존재하는 페이지 반환
+            // Page page = pageOptional.get();
+            // RenderPageDto form = RenderPageDto.builder()
+            //         .pagename(page.getPagename())
+            //         .githubUrl(page.getGithubUrl())
+            //         .user(page.getUser())
+            //         .boards(page.getBoards())
+            //         .cards(page.getCards())
+            //         .build();
+    //         return ResponseEntity.ok().build();
+    //     }
+    //     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    // }
+
+    @GetMapping("/user/{id}/page/{pageId}")
+    public ResponseEntity<RenderPageDto> getUserPage(@PathVariable Integer id, @PathVariable Integer pageId) {
+        Optional<User> user = userRepository.findById(id);
+
+        if (user.isPresent()) {
+            Optional<Page> pageOptional = pageRepository.findById(pageId);
+            if (pageOptional.isPresent()) {
+                Page page = pageOptional.get();
                 RenderPageDto form = RenderPageDto.builder()
                         .pagename(page.getPagename())
                         .githubUrl(page.getGithubUrl())
@@ -73,23 +109,18 @@ public class PageController {
                         .boards(page.getBoards())
                         .cards(page.getCards())
                         .build();
-
                 return ResponseEntity.ok(form);
             }
-
-            // 이미 존재하는 페이지 반환
-            Page page = pageOptional.get();
-            RenderPageDto form = RenderPageDto.builder()
-                    .pagename(page.getPagename())
-                    .githubUrl(page.getGithubUrl())
-                    .user(page.getUser())
-                    .boards(page.getBoards())
-                    .cards(page.getCards())
-                    .build();
-            return ResponseEntity.ok(form);
         }
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
+
+
+    public String getMethodName(@RequestParam String param) {
+        return new String();
+    }
+    
 
     @PostMapping("/api/save")
     public ResponseEntity<?> saveData(@RequestBody CardDataDto data) {
@@ -112,22 +143,22 @@ public class PageController {
         return ResponseEntity.ok(Map.of("cardId", saved.getCardId()));
     }
 
-    private List<Board> createBoards() {
-        List<Board> boards = new ArrayList<>();
+    // private List<Board> createBoards() {
+    //     List<Board> boards = new ArrayList<>();
     
-        // 각 상태에 맞는 Board 생성 및 Page와 연결
-        boards.add(Board.builder()
-                .status("Scheduled")  
-                .build());
-        boards.add(Board.builder()
-                .status("In Progress")  
-                .build());
-        boards.add(Board.builder()
-                .status("Done")  
-                .build());
+    //     // 각 상태에 맞는 Board 생성 및 Page와 연결
+    //     boards.add(Board.builder()
+    //             .status("Scheduled")  
+    //             .build());
+    //     boards.add(Board.builder()
+    //             .status("In Progress")  
+    //             .build());
+    //     boards.add(Board.builder()
+    //             .status("Done")  
+    //             .build());
     
-        return boards;
-    }
+    //     return boards;
+    // }
 
     @PatchMapping("/api/card/{id}/move")
     public ResponseEntity<?> moveCard(@PathVariable Integer id, @RequestBody Map<String, String> body) {

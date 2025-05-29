@@ -7,16 +7,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException.BadRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.studyroom.demo.etc.*;
+import com.studyroom.demo.service.PageService;
 import com.studyroom.demo.entity.User;
 import com.studyroom.dto.CheckUserDto;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -25,6 +31,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class LoginController {
+    private final PageService pageService;
+
     @GetMapping("/login/oauth2/google")
     public ResponseEntity<Map<String, Object>> getGoogleAuthorizeResource() {
         Map<String, Object> response = new HashMap<>();
@@ -46,7 +54,7 @@ public class LoginController {
         private String redirectUrl = "http://localhost:3030/login/oauth2/code/google";
         private String responseType = "code";
         private String scope = "openid profile email";
-        private String state = UUID.randomUUID().toString();
+        private String state = "";
     }
     // !! Intended vulnerability
     @Data
@@ -56,34 +64,53 @@ public class LoginController {
         private String redirectUrl = "http://localhost:3000/callback";
         private String responseType = "code";
         private String scope = "user repo";
-        private String state = UUID.randomUUID().toString();
+        private String state = "";
     }
 
+    // localhost:3000/index?page={pageId}&invite=123123
     @GetMapping("/auth/check")
-    public ResponseEntity<CheckUserDto> checkAuth(HttpSession session) {
+    public ResponseEntity<Map<String, Object>> checkAuth(
+            HttpSession session,
+            HttpServletResponse response,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) String invite) throws IOException{
+
+        Map<String, Object> form = new HashMap<>();
+
         SessionValue sessionValue = (SessionValue) session.getAttribute("AUTH_SESSION_USER");
-
-        System.out.println("세션 사용자 정보: " + session.getAttribute("AUTH_SESSION_USER"));
-
         if (sessionValue == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            form.put("authenticated", false);
+        } else { 
+            form.put("authenticated", true);
+
+            User user = (User) sessionValue.userInfo();
+            Integer userId = user.getId();
+
+            form.put("user", Map.of(
+                "id", userId,
+                "username", user.getUsername(),
+                "userEmail", user.getUserEmail()
+            ));
+
+
+            if (page != null) {
+                boolean hasAccess = pageService.checkUserAccessToPage(userId, page); // required
+                form.put("hasAccess", hasAccess);
+            } else {
+                form.put("hasAcecss", false);
+            }
+        } // 세션이 없는 사용자가 invited -> 로그인 후 이메일 검증
+          // 세션이 있는 사용자가 invited -> 해당 세션 이메일 검증
+        if (invite != null) {
+            if (sessionValue == null) form.put("isInvite", true);
+            else { pageService.acceptInviteCode(sessionValue, page, invite);}
+        } else {
+            form.put("isInvite", false);
         }
-
-        User user = (User) sessionValue.userInfo(); 
-
-        CheckUserDto form = CheckUserDto.builder()
-                            .id(user.getId())
-                            .username(user.getUsername())
-                            .userEmail(user.getUserEmail())
-                            .build();
-
-        
+        System.out.println("[*] form: ", form);
         return ResponseEntity.ok(form);
-        // Map<String> result = new HashMap<>();
-        // result.put("id", user.getId());
-        // result.put("email", user.getUserEmail());
-        // result.put("name", user.getUsername());
     }
+
 
     @PostMapping("/auth/logout")
     public ResponseEntity<?> logout(HttpSession session) {

@@ -1,23 +1,85 @@
+// $(document).ready(function () {
+//   const $modal = $('#modal');
+  // const params = new URLSearchParams(window.location.search);
+  // const isAuthorized = params.has("page");
+  // const isInvite = params.has("invite");
+  // let requestUrl;
+  // if (isAuthorized) {
+  //   let page = params.get("page")    
+  //   if (isInvite) {
+  //     const invite = params.get("invite");
+  //     requestUrl = `http://localhost:3030/auth/check?page=${pageId}&invite=${invite}`
+  //   } else {
+  //     requestUrl = `http://localhost:3030/auth/check?page=${pageId}`
+  //   }
+  // } else {
+  //   requestUrl = `http://localhost:3030/auth/check`
+  // }
+
+  // // 로그인 여부 확인
+  // $.ajax({
+  //   url: requestUrl,
+  //   method: 'GET',
+  //   xhrFields: { withCredentials: true },
+  //   success: function (form) {
+  //     $('.login-btn').hide();
+  //     $('.logout-btn').show();
+  //     $('#user-name').text(`${form.username || form.userEmail || '사용자'} 's Project`);
+  //     $('body').addClass('logged-in');
+  //     loadUserPage(form.id, pageId);
+  //   },
+  //   error: function () {
+  //     $('.login-btn').show();
+  //     $('.logout-btn').hide();
+  //   }
+  // });
 $(document).ready(function () {
   const $modal = $('#modal');
+  const params = new URLSearchParams(window.location.search);
+  const pageId = params.get("page");
+  const invite = params.get("invite");
 
-  // 로그인 여부 확인
+  const url = new URL("http://localhost:3030/auth/check");
+
+  if (pageId) url.searchParams.append("page", pageId);
+  if (invite) url.searchParams.append("invite", invite);
+
   $.ajax({
-    url: 'http://localhost:3030/auth/check',
-    method: 'GET',
+    url: url.toString(),
+    method: "GET",
     xhrFields: { withCredentials: true },
-    success: function (user) {
-      $('.login-btn').hide();
-      $('.logout-btn').show();
-      $('#user-name').text(`${user.username || user.userEmail || '사용자'} 's Project`);
-      $('body').addClass('logged-in');
-      loadUserPage(user.id);
+    success: function (res) {
+      const { authenticated, hasAccess, isInvite, user } = res;
+
+      if (!authenticated) {
+        console.log("unauthorized");
+        if (isInvite) {
+          console.log("login required");
+          window.location.href = `http://localhost:3000/login?${params}`;
+        }
+      } else if(isInvite){ // invite with session
+          console.log("invited");
+          window.location.href = `http://localhost:3000/index?page=${pageId}`;
+      } else if (hasAccess) {
+        console.log("hasAcess");
+        $('.login-btn').hide();
+        $('.logout-btn').show();
+        $('#user-name').text(`${user.username || user.userEmail || '사용자'} 's Project`);
+        $('body').addClass('logged-in');
+        loadUserPage(user.id, pageId);
+        // $('.login-btn').hide();
+        // $('.logout-btn').show();
+        // $('#user-name').text(`${user.username || user.userEmail || '사용자'} 's Project`);
+      } else {
+        // $('body').addClass('logged-in');
+        window.location.href = `http://localhost:3000/index?page=${user.id}`;
+      }
     },
-    error: function () {
-      $('.login-btn').show();
-      $('.logout-btn').hide();
+    error: function (err) {
+      console.log(err);
     }
   });
+
 
   // 로그아웃
   $('.logout-btn').on('click', function () {
@@ -32,9 +94,9 @@ $(document).ready(function () {
   });
 
   // 유저 페이지 불러오기
-  function loadUserPage(userId) {
+  function loadUserPage(userId, pageId) {
     $.ajax({
-      url: `http://localhost:3030/user/${userId}/page`,
+      url: `http://localhost:3030/user/${userId}/page/${[pageId]}`,
       method: 'GET',
       xhrFields: { withCredentials: true },
       success: function (pageData) {

@@ -2,7 +2,9 @@ package com.studyroom.demo.controller;
 
 import com.studyroom.demo.service.*;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studyroom.demo.entity.*;
+import com.studyroom.demo.repository.PageRepository;
 import com.studyroom.demo.repository.UserRepository;
 import com.studyroom.demo.etc.*;
 
@@ -11,6 +13,10 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,12 +35,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthCallbackGoogleController {
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final PageRepository pageRepository;
 
     public AuthCallbackGoogleController(
         UserRepository userRepository,
+        PageRepository pageRepository,
         @Qualifier("googleAuthService") AuthService authService
     ) {
         this.userRepository = userRepository;
+        this.pageRepository = pageRepository;
         this.authService = authService;
     }
     private static final String jsessionid = "AUTH_SESSION_USER";
@@ -57,13 +66,55 @@ public class AuthCallbackGoogleController {
             .username(name)
             .userEmail(email)
             .build();
-
             user = userRepository.save(user);
-        }
 
+            Page page = Page.builder()
+            .pagename("default-page-name") // 페이지 이름
+            .githubUrl("https://github.com/") // 예시 GitHub URL
+            .user(user) // User와 연결
+            .boards(createBoards()) // Board 생성
+            .cards(new ArrayList<>()) // 빈 카드 목록
+            .build();
+
+            page.getBoards().forEach(board -> board.setPage(page));
+            pageRepository.save(page);
+        }  
         session.setAttribute(jsessionid, new SessionValue(accessToken, user));
-        response.sendRedirect("http://localhost:3000/index.html");
+        ObjectMapper objectMapper = new ObjectMapper();
+        byte[] decodedBytes = Base64.getDecoder().decode(state);
 
-        return ResponseEntity.ok().build();
+        String jsonString = new String(decodedBytes, StandardCharsets.UTF_8);
+
+        JsonNode decodedState = objectMapper.readTree(jsonString);
+
+        boolean isInvite = decodedState.get("is_invite").asBoolean(); 
+        // String inviteCode = decodedState.get("invite_code").asText(); 
+        String redirectUri = decodedState.get("redirect_uri").asText(); 
+
+        if (isInvite) {
+            response.sendRedirect(redirectUri); 
+            return ResponseEntity.ok(user);
+        }
+ 
+        redirectUri += "?page=" + user.getId();;
+        response.sendRedirect(redirectUri);
+        return ResponseEntity.ok(user);
     }   
+
+    private List<Board> createBoards() {
+        List<Board> boards = new ArrayList<>();
+    
+        // 각 상태에 맞는 Board 생성 및 Page와 연결
+        boards.add(Board.builder()
+                .status("Scheduled")  
+                .build());
+        boards.add(Board.builder()
+                .status("In Progress")  
+                .build());
+        boards.add(Board.builder()
+                .status("Done")  
+                .build());
+    
+        return boards;
+    }
 }

@@ -14,9 +14,6 @@ public interface CollaboratorRepository extends JpaRepository<Collaborator, Inte
     // 특정 유저가 특정 페이지의 협업자인지 여부
     boolean existsByUserAndPage(User user, Page page);
 
-    // 특정 유저가 특정 페이지에 특정 역할(EDITOR 등)로 있는지 확인
-    boolean existsByUserAndPageAndRole(User user, Page page, String role);
-
     // 해당 페이지에 속한 모든 협업자 조회
     List<Collaborator> findByPage(Page page);
 

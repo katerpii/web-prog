@@ -35,9 +35,6 @@ public class Collaborator {
     @JoinColumn(name = "page_id", nullable = false)
     private Page page; // 협업한 페이지
 
-    @Column(name = "role", nullable = false)
-    private String role; // 'EDITOR' or 'VIEWER'
-
     @Column(name = "invited_by")
     private String invitedBy; // 초대한 사람 (username 또는 email)
 }

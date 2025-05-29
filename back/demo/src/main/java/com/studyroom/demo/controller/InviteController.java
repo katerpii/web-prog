@@ -52,18 +52,19 @@ public class InviteController {
 
     User inviter = (User) sessionValue.userInfo(); // 유저 객체 직접 꺼내기
 
-    String inviteeEmail = body.get("email");
-    if (inviteeEmail == null || inviteeEmail.isBlank()) {
+    Integer pageId = Integer.parseInt(body.get("page"));
+    String inviteEmail = body.get("email");
+    if (inviteEmail == null || inviteEmail.isBlank()) {
         return ResponseEntity.badRequest().body("이메일이 유효하지 않습니다.");
     }
 
-    // 초대 링크 생성 (Base64로 이메일 암호화)
-    String code = Base64.getEncoder().encodeToString(inviteeEmail.getBytes(StandardCharsets.UTF_8));
-    String inviteUrl = "http://localhost:3030/invite/accept?code=" + code;
+    // 초대 링크 생성 (Base64로 이메일 인코딩)
+    String code = Base64.getEncoder().encodeToString(inviteEmail.getBytes(StandardCharsets.UTF_8));
+    String inviteUrl = "http://localhost:3000/index?page=" + pageId + "&invite=" + code;
 
     // 이메일 전송
     SimpleMailMessage message = new SimpleMailMessage();
-    message.setTo(inviteeEmail);
+    message.setTo(inviteEmail);
     message.setSubject("[프로젝트 협업 초대]");
     message.setText(inviter.getUsername() + "님이 당신을 프로젝트 페이지에 초대했습니다.\n\n" +
             "아래 링크를 클릭해 수락하세요:\n" + inviteUrl);
@@ -101,7 +102,6 @@ public class InviteController {
             Collaborator collab = Collaborator.builder()
                 .user(me)
                 .page(pageOpt.get())
-                .role("EDITOR")
                 .build();
             collaboratorRepository.save(collab);
         }

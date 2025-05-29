@@ -1,17 +1,15 @@
 let targetColumn = null;
 
 $(document).ready(function () {
-  const $popup = $('#login-popup');
   const $modal = $('#modal');
   const $detailModal = $('#detail-modal');
 
+  url = new URL(window.location.href);
+  params = new URLSearchParams(window.location.search);
+  
   // 로그인 버튼
   $('.login-btn').on('click', function () {
-    $popup.show();
-  });
-
-  $('.close-popup').on('click', function () {
-    $popup.hide();
+    window.location.href = `http://localhost:3000/login?${params}`;
   });
 
   // 초대하기 버튼 클릭 시 초대 모달 표시
@@ -27,6 +25,9 @@ $(document).ready(function () {
 
   // 초대 확인 버튼 클릭 시 처리
   $('#invite-confirm').click(function () {
+    params = new URLSearchParams(window.location.search);
+    pageId = params.get("page");
+
     const email = $('#invite-email').val().trim();
 
     if (!email) {
@@ -44,7 +45,10 @@ $(document).ready(function () {
       url: 'http://localhost:3030/api/invite',
       method: 'POST',
       contentType: 'application/json',
-      data: JSON.stringify({ email: email }),
+      data: JSON.stringify({ 
+        email: email,
+        page: pageId
+       }),
       xhrFields: {
         withCredentials: true
       },
@@ -93,6 +97,16 @@ $(document).ready(function () {
         withCredentials: true
       },
       success: function (response) {
+        const state = JSON.stringify({ 
+          is_invite: params.has("invite"),
+          invite_code: params.get("invite"),
+          redirect_uri: "http://localhost:3000/index"
+          // 로그인: http://localhost:3000/login
+          // 초대 url: http://localhost:3000/index?page={page}&invite=asdsadsad
+         });
+
+         if (params.get("page")) redirect_uri + `?${page}`;
+        
         const auth = response.authorization;
         const loginUrl =
           `${auth.authorizationEndpoint}?` +
@@ -100,9 +114,9 @@ $(document).ready(function () {
           `&redirect_uri=${encodeURIComponent(auth.redirectUrl)}` +
           `&response_type=${encodeURIComponent(auth.responseType)}` +
           `&scope=${encodeURIComponent(auth.scope)}` +
-          `&state=${encodeURIComponent(auth.state)}` +
+          `&state=${btoa(state)}` +
           `&prompt=consent`;
-
+        
         window.location.href = loginUrl;
       },
       error: function (error) {
