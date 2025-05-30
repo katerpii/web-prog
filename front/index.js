@@ -189,8 +189,8 @@ $(document).ready(function () {
         $('#modal').hide();
         clearModalInputs();
       },
-      error: function (xhr) {
-        alert("카드 저장 실패: " + xhr.responseText);
+      error: function (error) {
+        alert("카드 저장 실패: " + error.responseText);
       }
     });
 
@@ -243,6 +243,30 @@ $(document).ready(function () {
 
   renderCalendar(currentDate);
   connectGanttScrollToMonthLabel();
+    $('#save-calendar-entry').on('click', function () {
+  const note = $('#calendar-note').val().trim();
+  const selectedDate = $('#selected-date-text').text().replace('📌 선택된 날짜: ', '');
+
+  if (!note && !selectedDate) {
+    alert('날짜를 선택하고 메모를 작성하세요.');
+    return;
+  }
+
+  // 해당 날짜 셀 찾기 (예: 2025년 6월 5일 → 5)
+  const selectedDay = parseInt(selectedDate.split(' ')[2].replace('일', ''));
+  const $targetCell = $('#calendar-days .day-cell').filter(function () {
+    return $(this).text() === String(selectedDay);
+  });
+
+  if ($targetCell.length) {
+    $targetCell.attr('title', note); // 툴팁 표시용
+    $targetCell.append(`<div class="calendar-note">${note}</div>`);
+  }
+
+  $('#calendar-note').val('');
+  $('.calendar-entry-panel').hide();
+  });
+  
 });
 
 $(document).on('click', '.delete-card-btn', function () {
@@ -480,15 +504,25 @@ function renderCalendar(date) {
   const lastDate = new Date(year, month + 1, 0).getDate();
 
   for (let i = 0; i < firstDay; i++) {
-    $calendarDays.append("<div></div>");
+    $calendarDays.append("<div class='day-cell empty'></div>");
   }
 
   for (let day = 1; day <= lastDate; day++) {
     const thisDate = new Date(year, month, day);
-    const $dayDiv = $("<div></div>").text(day);
+    const $dayDiv = $("<div class='day-cell'></div>").text(day);
+
     if (thisDate.toDateString() === new Date().toDateString()) {
       $dayDiv.addClass("today");
     }
+
+    // ✅ 날짜 클릭 시 우측 패널에 표시
+    $dayDiv.on("click", function () {
+      const dateStr = `${year}년 ${month + 1}월 ${day}일`;
+      $("#selected-date-text").text(`📌 선택된 날짜: ${dateStr}`);
+      $("#calendar-note").val(""); // 초기화
+      $(".calendar-entry-panel").show();
+    });
+
     $calendarDays.append($dayDiv);
   }
 }
@@ -518,6 +552,9 @@ function saveCardDataToDB($card) {
     url: 'http://localhost:3030/api/save',
     method: 'POST',
     contentType: 'application/json',
+    xhrFields: {
+      withCredentials: true
+    },
     data: JSON.stringify(cardData),
     success: function (response) {
       console.log('Card data saved successfully');
@@ -571,4 +608,45 @@ function updateCardStatus($card) {
     }
   });
 }
+
+document.getElementById('markdown-input').addEventListener('input', function () {
+  const markdownText = this.value;
+  const html = marked.parse(markdownText);
+  document.getElementById('markdown-preview').innerHTML = html;
+});
+
+// 날짜 클릭 시 일정 입력 패널 표시
+$("#calendar-days").on("click", ".day-cell", function () {
+  const day = $(this).text();
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth() + 1;
+  selectedCalendarDate = `${year}-${month}-${day}`;
+
+  $("#selected-date-text").text(`📌 선택된 날짜: ${selectedCalendarDate}`);
+  $(".calendar-entry-panel").show();
+});
+
+// 저장 버튼 이벤트
+$('#save-calendar-entry').on('click', function () {
+  const note = $('#calendar-note').val().trim();
+
+  if (!selectedCalendarDate || !note) {
+    alert("날짜를 선택하고 메모를 작성하세요.");
+    return;
+  }
+
+  const $targetDay = $("#calendar-days .day-cell").filter(function () {
+    return $(this).text() === String(parseInt(selectedCalendarDate.split("-")[2]));
+  });
+
+  $targetDay.attr("title", note); // 툴팁용
+  $targetDay.addClass("has-note"); // 스타일 줄 때
+
+  // 초기화
+  $('#calendar-note').val('');
+  selectedCalendarDate = null;
+  $('#selected-date-text').text('날짜를 클릭하세요');
+
+});
+
 

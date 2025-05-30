@@ -1,208 +1,369 @@
 body {
-	font-family: 'Arial', sans-serif;
-	background-color: #1e1e1e;
-	color: white;
-	margin: 0;
-	padding: 0;
+   font-family: 'Arial', sans-serif;
+   background-color: #1e1e1e;
+   color: white;
+   margin: 0;
+   padding: 0;
   }
 #user-name {
     margin-bottom: 0px;
 }  
 
 .logged-in #user-name {
-	margin-bottom: 20px;
+   margin-bottom: 20px;
 }
   .container {
-	width: 90%;
-	margin: auto;
-	padding: 20px;
+   width: 90%;
+   margin: auto;
+   padding: 20px;
   }
   
   .bck-image {
-	grid-area:1/1;
-	width: 100%;
-	height: 100%;
+   grid-area:1/1;
+   width: 100%;
+   height: 100%;
   }
 
   h1, h2{
-	margin-bottom: 10px;
+   margin-bottom: 10px;
   }
+  
+.top-buttons button {
+  margin-right: 10px;
+  background: linear-gradient(135deg, #3a3a3a, #1f1f1f);
+  color: #f0f0f0;
+  padding: 10px 16px;
+  border: 1px solid #555;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
 
-  .top-buttons button {
-	margin-right: 10px;
-	background-color: #333;
-	border: none;
-	color: white;
-	padding: 8px 12px;
-	cursor: pointer;
-	border-radius: 5px;
-	gap: 12px;
-	margin-top: 12px;
-	flex-wrap: wrap;
-	align-items: center;
-  }
-  
-  .board-columns {
-	display: flex;
-	gap: 20px;
-	margin-top: 10px;
-  }
-  
-  .column {
-	background-color: #2e2e2e;
-	padding: 10px;
-	border-radius: 8px;
-	flex: 1;
-  }
+.top-buttons button:hover {
+  background: linear-gradient(135deg, #4c4c4c, #2a2a2a);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+}
 
-  .board-columns .column:nth-child(1) h3 {
-	font-family: consolas;
-	color: white;
-	
-  }
+.top-buttons button:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+/* 초대 모달  */
+#invite-modal {
+  display: none;
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 360px;
+  background-color: #1f1f1f;
+  color: #f0f0f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* 이메일 입력창 */
+#invite-email {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background-color: #2c2c2c;
+  color: #f0f0f0;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+#invite-email:focus {
+  outline: none;
+  border-color: #888;
+}
+
+
+#invite-confirm,
+#invite-close {
+  padding: 10px 16px;
+  margin-right: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+
+#invite-confirm {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b); /* 노랑 → 주황 */
+  color: #1f1f1f;
+}
+
+#invite-confirm:hover {
+  background: linear-gradient(90deg, #facc15, #eab308);
+}
+
+
+#invite-close {
+  background-color: #333;
+  color: #f0f0f0;
+}
+
+#invite-close:hover {
+  background-color: #444;
+}
+
   
-  .board-columns .column:nth-child(2) h3 {
-	font-family: consolas;
-	color: rgba(11, 84, 120, 1);
-  }
-  
-  .board-columns .column:nth-child(3) h3 {
-	font-family: consolas;
-	color: #175536;
-  }
-  
-  /* .board-columns .column:nth-child(1) .add-btn{
-	float: right;
-	margin-right: 20px;
-  } */
-  
-  .board-columns .column:nth-child(2) .add-btn {
-	color: rgba(11, 84, 120, 1);
-  }
-  
-  .board-columns .column:nth-child(3) .add-btn {
-	color: #175536;
-  }
-  
+.board-columns {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  padding: 0 10px;
+}
+
+.column {
+  background-color: #292929;
+  padding: 20px;
+  border-radius: 16px;
+  flex: 1;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+.column:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+/* 📌 헤더 */
+.column h3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 18px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  color: #f0f0f0;
+}
+
+/* 컬럼별 색상 */
+.column:nth-child(1) h3 { color: #ffcad4; }   /* Scheduled - 연핑크 */
+.column:nth-child(2) h3 { color: #a4d4ff; }   /* In Progress - 연하늘 */
+.column:nth-child(3) h3 { color: #b8f7c3; }   /* Done - 연초록 */
+
+/* 기본 버튼 숨김 */
+.column h3 .add-btn {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+/* ✅ h3 위에 마우스 올리면 버튼 보여줌 */
+.column h3:hover .add-btn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.add-btn {
+  background-color: transparent;
+  color: #cccccc; /* 연한 회색 글자 */
+  font-size: 18px;
+  font-weight: bold;
+  border: 1px solid #555; /* 어두운 경계 */
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-btn:hover {
+  background-color: #333;
+  color: #fff;
+  border-color: #888;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+}
+
+
+/* 상세 모달 전체 */
+#detail-modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 360px;
+  background-color: #2c2c2c;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  color: #f0f0f0;
+  padding: 28px 24px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* 제목 */
+#detail-modal h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffd861;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #444;
+  padding-bottom: 8px;
+}
+
+/* 상세 정보 텍스트 */
+#detail-modal p {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 10px;
+  color: #ddd;
+}
+
+/* 닫기 버튼 (X) */
+#detail-modal .close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-size: 22px;
+  font-weight: bold;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+}
+
+#detail-modal .close:hover {
+  color: #fff;
+}
 
   .card {
-	padding: 10px;
-	margin-bottom: 10px;
-	background-color: #444;
-	border-radius: 8px;
-	box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+   padding: 10px;
+   margin-bottom: 10px;
+   background-color: #444;
+   border-radius: 8px;
+   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
   .card:hover {
-	transform: scale(1.02);
+   transform: scale(1.02);
   }
   
   .card-text {
-	font-weight: bold;
-	margin-bottom: 5px;
+   font-weight: bold;
+   margin-bottom: 5px;
   }
   
   .card-status {
-	width: 100%;
-	padding: 4px;
-	font-size: 0.9em;
+   width: 100%;
+   padding: 4px;
+   font-size: 0.9em;
   }
   .card .name {
-	font-weight: bold;
+   font-weight: bold;
   }
   .card .owner {
-	font-size: 0.8em;
-	color: #ccc;
+   font-size: 0.8em;
+   color: #ccc;
   }
 
   .card.scheduled {
-	background-color: #444; 
+   background-color: #f1ced3; 
   }
 
   .card.in-progress {
-	background-color: rgba(11, 84, 120, 0.5);
+   background-color: rgba(11, 84, 120, 0.5);
   }
 
   .card.done {
-	background-color:rgba(23, 85, 54, 0.5);
+   background-color:rgba(23, 85, 54, 0.5);
   }
 
-  .gantt-box {
-	background-color: #333;
-	height: auto;
-	border-radius: 8px;
-	margin-top: 10px;
-	padding: 10px;
-	overflow-x: scroll;  
-  }
-	/* #gantt-chart {
-		background-color: #1c1c1c;
-		padding: 10px;
-		border-radius: 10px;
-		margin-top: 20px;
-	} */
-	#gantt-chart {
-		display: inline-block;
-		white-space: nowrap;
-		width: max-content;
-		overflow-x: auto;  
-	  }
-	.gantt-header {
-		display: flex;
-		gap: 1px;
-		background-color: #222;
-		color: white;
-		font-size: 12px;
-	}
-	.gantt-month-label {
-		font-size: 16px;
-		margin-bottom: 8px;
-		font-weight: bold;
-	  }
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-.gantt-cell {
-	width: 30px;
-	height: 30px;
-	background-color: #333;
-	text-align: center;
-	line-height: 30px;
-	border-right: 1px solid #444;
+.gantt-box {
+width: 100%;
+  overflow-x: auto;
+  padding: 12px;
+  background-color: #1e1e1e;
+  border-radius: 10px;
+  min-height: 150px;
+}
+
+#gantt-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.gantt-header {
+  display: flex;
+  gap: 0px;
 }
 
 .gantt-row {
-	position: relative;
-	height: 40px;
-	border-bottom: 1px solid #444;
+  position: relative;
+  height: 40px; /* ← 충분한 높이로 늘리기 */
+  overflow: visible;
+  background-color: transparent;
+  border-bottom: 1px solid #333;
 }
 
+.gantt-cell {
+  width: 30px;
+  height: 30px;
+  font-size: 10px;
+  line-height: 30px;
+  color: #ccc;
+  text-align: center;
+  border-right: 1px solid #444;
+}
+
+.gantt-month-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ccc;
+  margin-bottom: 8px;
+}
+
+/* 실험용
 .gantt-bar {
-	position: absolute;
-	height: 24px;
-	top: 8px;
-	background-color: #5e0b1a;
-	border-radius: 12px;
-	color: white;
-	text-align: center;
-	padding: 0 8px;
-	font-size: 12px;
-	display: flex;
-	align-items: center;
-	overflow: hidden;
-	white-space: nowrap;
-}
+  background-color: red !important;
+  z-index: 10;
+}*/
+
+/* Scheduled */
 .gantt-bar.scheduled {
-	background-color: #444; 
-  }
+  background: linear-gradient(90deg, #f8bfc6, #f4a6b8); /* 연분홍 */
+  color: #2a0d14;
+}
 
-  .gantt-bar.in-progress {
-	background-color: rgba(11, 84, 120, 1);
-  }
+/* In Progress */
+.gantt-bar.in-progress {
+  background: linear-gradient(90deg, #91c9f8, #689ce6); /* 파스텔 블루 */
+  color: #102544;
+}
 
-  .gantt-bar.done {
-	background-color:rgba(23, 85, 54, 1);
-  }
+/* Done */
+.gantt-bar.done {
+  background: linear-gradient(90deg, #90e3b8, #59cda2); /* 파스텔 민트 */
+  color: #0e3c28;
+}
+
   .doc-list {
-	list-style-type: none;
-	padding: 0;
+   list-style-type: none;
+   padding: 0;
   }
   
   .doc-list li {
@@ -216,7 +377,7 @@ body {
 
 
   .board h2{
-	max-width: 100%;
+   max-width: 100%;
     width: 100%;
     white-space: pre-wrap;
     word-break: break-word;
@@ -229,125 +390,718 @@ body {
     margin: 0px;
   }
 
-  .calendar {
-	margin-top: 30px;
-  }
+.calendar-wrapper {
+  display: flex;
+  gap: 24px;
+  margin-top: 30px;
+}
+
+.calendar-panel {
+  flex: 3; /* 75% */
+}
+
+.calendar-entry-panel {
+  display: none;
+  background-color: #2a2a2a;
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  margin-top: 20px;
+}
+.calendar-entry-panel h3 {
+  color: #f9c74f;
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+
+#calendar-note {
+  background-color: #1e1e1e;
+  color: #ccc;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 10px;
+  font-family: 'Segoe UI', sans-serif;
+  resize: vertical;
+  min-height: 120px;
+}
+
+#save-calendar-entry {
+  background: linear-gradient(135deg, #f9c74f, #f9844a);
+  color: #1e1e1e;
+  border: none;
+  padding: 10px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#save-calendar-entry:hover {
+  background: linear-gradient(135deg, #ffd95e, #f9a46f);
+}
+
   
   .tab-buttons {
-	display: flex;
-	gap: 10px;
-	margin-bottom: 10px;
+   display: flex;
+   gap: 10px;
+   margin-bottom: 10px;
   }
   
   .tab {
-	background-color: #2a2a2a;
-	border: none;
-	padding: 8px 16px;
-	color: white;
-	cursor: pointer;
-	border-radius: 5px;
+   background-color: #2a2a2a;
+   border: none;
+   padding: 8px 16px;
+   color: white;
+   cursor: pointer;
+   border-radius: 5px;
   }
   
-  .tab.active {
-	background-color: #444;
-  }
+  /*.tab.active {
+   background-color: #ad1b1b;
+  }*/
   
   .tab-content {
-	display: none;
+   display: none;
   }
   
   .tab-content.active {
-	display: block;
+   display: block;
   }
   
   #calendar-header {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	gap: 20px;
-	margin-bottom: 10px;
-	font-size: 18px;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   gap: 20px;
+   margin-bottom: 10px;
+   font-size: 18px;
   }
-  
-  .calendar {
-	background-color: #222;
-	border-radius: 10px;
-	padding: 10px;
-  }
-  
-  .day-names,
-  .days-grid {
-	display: grid;
-	grid-template-columns: repeat(7, 1fr);
-	text-align: center;
-	gap: 100px;
-  }
-  
+
+.calendar {
+  width: 100%;              /* 더 넓게 */
+  margin: 0 auto;          /* 가운데 정렬 */
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.day-names {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  margin-bottom: 10px;
+  color: #ccc;
+  font-weight: bold;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+.day-cell {
+  height: 60px;
+  aspect-ratio: 1;
+  background-color: #2a2a2a;
+  color: #eee;
+  text-align: center;
+  line-height: 60px;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+.day-cell:hover {
+  background-color: #444;
+  cursor: pointer;
+}
+.day-cell.empty {
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.day-cell.has-note {
+  background-color: #b597f0;
+  position: relative;
+}
+
+.day-cell[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  top: -30px;
+  left: 0;
+  background: #222;
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
   .day-names div {
-	font-weight: bold;
-	color: #aaa;
+   font-weight: bold;
+   color: #aaa;
   }
   
   .days-grid div {
-	width: 95%;
-	padding: 10px 0;
-	border-radius: 5px;
+   width: 95%;
+   padding: 10px 0;
+   border-radius: 5px;
   }
-  
+
+  .calendar-modal {
+  display: none;
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -10%);
+  background-color: #1e1e1e;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.6);
+  z-index: 1000;
+  width: 360px;
+  color: white;
+}
+
+.calendar-modal-content h3 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  color: #f9c74f;
+}
+
+#calendar-note {
+  width: 100%;
+  border: 1px solid #444;
+  background-color: #2a2a2a;
+  color: #fff;
+  border-radius: 6px;
+  padding: 10px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.calendar-note {
+  font-size: 10px;
+  color: #f5c542;
+  margin-top: 4px;
+}
+
+.calendar-modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.calendar-modal-buttons button {
+  flex: 1;
+  margin: 0 5px;
+  padding: 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#close-calendar-modal {
+  background-color: #888;
+}
+
   .today {
-	background-color: red;
-	color: white;
+   background-color: red;
+   color: white;
   }
   
   .list-box {
-	width: 95%;
+   width: 95%;
     font-size: 14px;
     font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
     color: rgba(255, 255, 255, 0.443);
     border-radius: 4px;
     position: relative;
-	margin-top: 10px;
-	margin-left: 30px;
+   margin-top: 10px;
+   margin-left: 30px;
   }
 
-  .modal {
-	display: none;
-	position: fixed;
-	top: 20%;
-	left: 35%;
-	width: 300px;
-	background:#2a2a2a;
-	border: 1px solid #aaa;
-	padding: 20px;
-	box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
-	z-index: 1000;
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(20, 20, 20, 0.8);  
+  z-index: 1000;
+  overflow-y: auto;  /* 내용 넘치면 스크롤 */
+  padding: 60px 20px;  
+  box-sizing: border-box;
+}
+
+/* 모달 애니메이션 */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20%);
   }
-  .modal-content {
-	display: flex;
-	flex-direction: column;
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
-  .modal-content input {
-	margin: 5px 0 10px;
-  }
-  
+}
+
+.modal.animate {
+  animation: modalFadeIn 0.4s ease-out;
+}
+
+.modal-content {
+  max-width: 420px;
+  margin: auto;
+  background-color: #2c2c2c;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #f9c74f;
+}
+
+.modal-content label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ccc;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="date"] {
+  background-color: #2b2b2b;
+  border: 1px solid #444;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 8px;
+  color: #eee;
+  transition: border-color 0.3s;
+}
+
+.modal-content input:focus {
+  outline: none;
+  border-color: #f9c74f;
+  box-shadow: 0 0 0 2px rgba(249, 199, 79, 0.3);
+}
+.modal-actions {
+  display: flex;
+  justify-content: center;   /* 👉 가운데 정렬 */
+  gap: 14px;
+  margin-top: 24px;
+}
+
+
+/* 공통 버튼 스타일 */
+.modal-actions button {
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* 추가 버튼 - 눈에 띄는 포인트 색상 */
+.modal-actions .confirm {
+  background: linear-gradient(135deg, #f9c74f, #f9844a);
+  color: #1e1e1e;
+  box-shadow: 0 2px 6px rgba(249, 199, 79, 0.3);
+}
+
+.modal-actions .confirm:hover {
+  background: linear-gradient(135deg, #ffd95e, #f9a46f);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(249, 199, 79, 0.4);
+}
+
+/* 닫기 버튼 - 깔끔한 어두운 중립 색 */
+.modal-actions .cancel {
+  background-color: #333;
+  color: #ccc;
+}
+
+.modal-actions .cancel:hover {
+  background-color: #444;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+
+
 #login-popup {
-	position: fixed;
-	top: 20%;
-	left: 35%;
-	width: 300px;
-	background:#2a2a2a;
-	border: 1px solid #aaa;
-	padding: 20px;
-	box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
-	z-index: 1000;
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 360px;
+  background: #1f1f1f;
+  border: 1px solid #444;
+  border-radius: 16px;
+  padding: 24px 28px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  color: #f0f0f0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+#login-popup h3 {
+  margin-bottom: 16px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #f9c74f;
+}
+
+#login-popup input[type="text"],
+#login-popup input[type="password"] {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background-color: #2b2b2b;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+#login-popup input:focus {
+  outline: none;
+  border-color: #888;
+  background-color: #333;
+}
+
+#login-popup .google-login {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #4c4c4c, #2a2a2a);
+  color: #f0f0f0;
+  border: 1px solid #666;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+#login-popup .google-login:hover {
+  background: linear-gradient(135deg, #5c5c5c, #333);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+#login-popup .github-login {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #4c4c4c, #2a2a2a);
+  color: #f0f0f0;
+  border: 1px solid #666;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+#login-popup .github-login:hover {
+  background: linear-gradient(135deg, #5c5c5c, #333);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* 닫기 버튼 */
+#login-popup .close-popup {
+  background: linear-gradient(135deg, #444, #2a2a2a); /* 다크 그레이 */
+  color: #f0f0f0;
+  border: 1px solid #555;
+}
+
+#login-popup .close-popup:hover {
+  background: linear-gradient(135deg, #5a5a5a, #3a3a3a);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+  .document-idea-wrapper {
+  display: flex;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+
+/* 오른쪽 영역을 위아래로 50:50 나눔 */
+.side-split-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.memo-section {
+  flex: 1;
+  background: linear-gradient(135deg, #2a2a2a, #3a3a3a); /* 세련된 다크 그라데이션 */
+  color: #f5f5f5;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08); /* 부드러운 투명 경계선 */
+  transition: box-shadow 0.3s ease;
+}
+
+.memo-section:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6); /* 호버 시 더 깊은 입체감 */
+}
+.memo-section textarea {
+  background-color: #2a2a2a;        /* 입력 박스 배경 */
+  color: #ddd;                      /* 입력 글자 색 */
+  border: 1px solid #444;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  padding: 12px;
+  width: 100%;
+  resize: vertical;
+}
+
+#markdown-preview {
+  background-color: #1c1c1c;
+  color: #ccc;
+  border-top: 1px dashed #555;
+  border-radius: 6px;
+  padding: 14px;
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+#markdown-input {
+  width: 100%;
+  height: 200px; /* 👉 세로 크기 조정 */
+  background-color: #2c2c2c;
+  color: #f0f0f0;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  resize: vertical; /* 크기 조절 허용 */
+}
+
+/* 멤버 */
+.member-section {
+  flex: 1;
+  color:#f1d7d7;
+  background-color: gray;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.06);
+  overflow-y: auto;
+}
+
+/* 멤버 상태 표시 */
+.status {
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status.online { background-color: #61d26f; }
+.status.away { background-color: #f5c344; }
+.status.offline { background-color: #aaa; }
+
+/* 문서 전체 레이아웃 */
+.document-idea-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: stretch;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.api-section {
+  flex: 1;
+  width: 100%;
+  max-width: 800px;              
+  margin: 0 auto;
+  background-color: #1b1b1b;
+  color: #f0f0f0;
+  padding: 24px 5vw;              /* 좌우 여백을 뷰포트 기준 */
+  border-radius: 20px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04);
+  font-family: 'Segoe UI', sans-serif;
+  box-sizing: border-box;
+}
+
+/* 제목 */
+.api-section h2 {
+  font-size: 1.6em;
+  font-weight: bold;
+  color: #f9c74f;
+  border-bottom: 2px solid #333;
+  padding-bottom: 8px;
+  margin-bottom: 24px;
+}
+
+/* 문서 항목 목록 */
+.doc-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* 📄 리스트 항목 (카드 스타일) */
+.doc-list li {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  color: #eee;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.doc-list li:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* 문서 아이콘 강조 */
+.doc-list li::before {
+  content: "📄";
+  margin-right: 10px;
+  font-size: 18px;
+  color: #ffd36f;
+}
+
+/* 내부 업로드 박스 */
+.api-section .list-box {
+  background-color: #2a2a2a;
+  color: #ddd;
+  font-weight: 500;
+  border-radius: 10px;
+  padding: 10px 14px;
+  border: 1px solid #444;
+  box-shadow: inset 0 0 0 1px #333;
+  margin-top: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  white-space: normal;
+  transition: box-shadow 0.2s ease;
+}
+
+.api-section .list-box:hover {
+  box-shadow: inset 0 0 0 1px #666;
+}
+
+.api-section .list-box .column {
+  background: none;
+  color: #ccc;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  display: inline-block;
+  word-break: break-word;
+}
+
+.api-section input[type="file"] {
+  color: #ccc;
+  background-color: #1e1e1e;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6px;
+}
+
+/*반응형: 화면 작을 때 조정 */
+@media (max-width: 600px) {
+  .api-section {
+    padding: 16px 4vw;
   }
 
-#login-popup input {
-	margin-right: 10px;
-	background-color: #333;
-	border: none;
-	color: white;
-	padding: 8px 12px;
-	cursor: pointer;
-	border-radius: 5px;
+  .api-section h2 {
+    font-size: 1.4em;
+  }
+
+  .doc-list li {
+    padding: 12px;
+  }
+
+  .api-section .list-box {
+    padding: 8px 10px;
+  }
+
+  .api-section input[type="file"] {
+    font-size: 13px;
+  }
+}
+
+
+
+.tab-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.tab {
+  background-color: #eee;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #333;
+}
+
+.tab.active {
+  background-color: #e3ed94;
+  box-shadow: 0 0 0 2px #201c1c;
+}
+
+
+.notice-section {
+  background: #1e1e1e;
+  color: #eee;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  margin-bottom: 24px;
+}
+.notice-section h2 {
+  margin-bottom: 10px;
+  font-size: 1.4em;
+  color: #fcd34d;
+}
+.notice-item {
+  background: #2a2a2a;
+  padding: 10px 14px;
+  border-left: 4px solid #555;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+.notice-item.pinned {
+  border-color: #f59e0b;
 }

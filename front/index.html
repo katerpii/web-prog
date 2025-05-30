@@ -11,7 +11,7 @@
 <body>
   <div class="container">
     <div class="bck-image">
-      <img alt="" src="./images/gradients_3.png" referrerpolicy="same-origin" style="display: block; 
+      <img alt="" src="./images/see.jpg" referrerpolicy="same-origin" style="display: block; 
       object-fit: cover; border-radius: 0px; width: 100%; height: 30vh; max-height: 280px; opacity: 1; 
       object-position: center 60%;">
     </div>
@@ -33,7 +33,7 @@
       <button>초대하기</button>
     </div>
 
-    <section class="board">
+     <section class="board">
       <br>
       <h2>BOARD</h2>
       <div class="board-columns">
@@ -64,23 +64,15 @@
         <input type="date" id="task-start">
         <label for="task-end">종료일:</label>
         <input type="date" id="task-end">
-        <button id="add-card-confirm">추가</button>
-        <button id="modal-close">닫기</button>
       </div>
+        <div class="modal-actions">
+          <button id="add-card-confirm" class="confirm">추가</button>
+          <button id="modal-close" class="cancel">닫기</button>
+        </div>
+
     </div>
-    <!-- invite modal -->
-<div id="invite-modal" class="modal" style="display: none;">
-  <div class="modal-content">
-    <h3>이메일로 사용자 초대</h3>
-    <label for="invite-email">초대할 이메일:</label>
-    <input type="email" id="invite-email" placeholder="user@example.com" required>
-    <button id="invite-confirm">초대 전송</button>
-    <button id="invite-close">닫기</button>
-  </div>
-</div>
 
-
-    <!-- card detail -->
+    <!-- card detail (상세정보 디테일 바꾸기기)(완완) -->
     <div id="detail-modal" class="modal">
       <div class="modal-content">
         <span class="close" id="detail-close">&times;</span>
@@ -90,28 +82,46 @@
         <p id="detail-dates"></p>
       </div>
     </div>
+
+
+ 
+
     <!-- Calender & Gantt chart-->
     <section class="calendar">
-      <h2>GANTT CHART</h2>
+      <h2>Calender & Gantt Chart</h2>
       <div class="tab-buttons">
         <button class="tab active" onclick="switchTab('calendar')">📅 캘린더</button>
         <button class="tab" onclick="switchTab('gantt')">📈 간트차트</button>
       </div>
+
+    <!-- 버튼 모양 바꾸기 (완)-->
       <div id="calendar-view" class="tab-content active">
         <div id="calendar-header">
           <button onclick="changeMonth(-1)">◀</button>
           <span id="month-year"></span>
           <button onclick="changeMonth(1)">▶</button>
         </div>
+
         <div class="calendar">
           <div class="day-names">
             <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
           </div>
           <div id="calendar-days" class="days-grid">
-            <div></div>
+            <div>
+
+            </div>
           </div>
-        </div>
+ 
+
+      <div class="calendar-entry-panel" style="display: none;">
+        <h3>📌 일정 입력</h3>
+        <p id="selected-date-text">날짜를 클릭하세요</p>
+        <textarea id="calendar-note" placeholder="일정 메모 작성..." rows="6"></textarea>
+        <button id="save-calendar-entry">저장</button>
       </div>
+      
+    </div>
+
       <div id="gantt-view" class="tab-content">
         <div class="gantt-month-label"></div>
         <div class="gantt-box">
@@ -120,56 +130,80 @@
       </div>
     </section>
 
-    <section class="main-layout">
-      <div class="document-sidebar">
-      <h2>Documents 🔌</h2>
+
+
+  <div class="document-idea-wrapper">
+    <!-- 왼쪽: API 문서 영역 -->
+    <section class="api-section">
+      <h2>Documents🔌</h2>
       <ul class="doc-list">
-        <li>
-          📄 API 명세 
-          <div class="list-box">
-            <div class="column">README.md</div>
-          </div>
-        </li>
-        <li>📄 회의록 
-          <div class="list-box">
-            <input type="file" id="file-upload-input" style="display:inline-block;">
-            <button id="file-upload-btn">업로드</button>
-            <button id="file-download-btn">다운로드</button>
-          </div>
-        </li>
-        <li>📄 프로젝트 제안서
-          <div class="list-box">
-            <div class="column">파일 업로드</div>
-          </div>
-        </li>
-        <li>📄 프로젝트 계획서
-          <div class="list-box">
-            <div class="column">파일 업로드</div>
-          </div>
-        </li>
-        <li>📄 시스템 요구사항 명세서
-          <div class="list-box">
-            <div class="column">파일 업로드</div>
-          </div>
-        </li>
-        <li>📄 시스템 설계 명세서
-          <div class="list-box">
-            <div class="column">파일 업로드</div>
-          </div>
-        </li>
-        <li>📄 프로젝트 최종 보고서
-          <div class="list-box">
-            <div class="column">파일 업로드</div>
-          </div>
-        </li>
+        <li>📄 API 명세<div class="list-box"><div class="column">README.md</div></div></li>
+        <li>📄 회의록<div class="list-box"><input type="file"></div></li>
+        <li>📄 프로젝트 제안서<div class="list-box"><div class="column">프로젝트_제안서_챗봇시스템.pdf<br>프로젝트_제안서_스마트사물함.pdf</div></div></li>
+        <li>📄 프로젝트 계획서<div class="list-box"><div class="column">개발_계획서_스마트사물함.pdf<br>개발_계획서_챗봇시스템.pdf</div></div></li>
+        <li>📄 시스템 요구사항 명세서<div class="list-box"><div class="column">파일 업로드</div></div></li>
+        <li>📄 시스템 설계 명세서<div class="list-box"><div class="column">시스템_설계_명세서_스마트사물함.pdf</div></div></li>
+        <li>📄 프로젝트 최종 보고서<div class="list-box"><input type="file"></div></li>
       </ul>
-    </div>
-    <div class="memo-sidebar">
-      <h3>📝 메모장</h3>
-      <textarea placeholder="여기에 메모를 작성하세요.."></textarea>
-    </div>
     </section>
 
+  <div class="side-split-wrapper">
+      <section class="memo-section">
+        <h2>📒 Memo & Idea</h2><hr>
+        <textarea id="markdown-input" placeholder="Markdown 형식으로 아이디어를 작성하세요..." rows="6"></textarea>
+        <div id="markdown-preview"></div>
+      </section>
+
+  <section class="notice-section">
+    <h2>📢 공지사항</h2>
+    <div class="notice-list">
+      <div class="notice-item pinned">
+        <strong>📌 회의 일정 변경 안내</strong>
+        <p>이번 주 회의는 <mark>금요일 20:00</mark>으로 변경되었습니다.</p>
+      </div>
+      <div class="notice-item">
+        <strong>신입 멤버 온보딩 가이드</strong>
+        <p>Notion 및 Github 권한 설정 완료 바랍니다.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="member-section">
+    <h2>Memebers</h2><hr><br>
+    <div class="tab-buttons">
+      <button class="tab active" onclick="switchMemberTab('status')">👥 현재 상태</button>
+      <button class="tab" onclick="switchMemberTab('history')">📜 활동 히스토리</button>
+    </div>
+
+    <div id="member-status" class="tab-content active">
+      <ul>
+        <li><span class="status online"></span> 김지우 – 온라인</li>
+        <li><span class="status away"></span> 김태우 – 마지막 활동: 1시간 전</li>
+        <li><span class="status offline"></span> 이동준 – 3일 전 활동</li>
+      </ul>
+    </div>
+
+    <div id="member-history" class="tab-content">
+      <ul>
+        <li>✅ 김지우 – 보드 구성 완료 <span class="time">5분 전</span></li>
+        <li>✏️ 김태우 – 간트차트 일정 수정 <span class="time">30분 전</span></li>
+        <li>➕ 이동준 – ‘기획안 정리’ 카드 추가 <span class="time">어제</span></li>
+      </ul>
+    </div>
+  </section>
+
+    </div>
+</div>
+  <!-- invite modal -->
+  <div id="invite-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>이메일로 사용자 초대</h3>
+      <label for="invite-email">초대할 이메일:</label>
+      <input type="email" id="invite-email" placeholder="user@example.com" required>
+      <button id="invite-confirm">초대 전송</button>
+      <button id="invite-close">닫기</button>
+    </div>
   </div>
 
   <script src="index.js?v=1"></script>
