@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-import com.studyroom.demo.entity.Board;
-import com.studyroom.demo.entity.Card;
 import com.studyroom.demo.entity.User;
 
 @Data
@@ -19,6 +17,5 @@ public class RenderPageDto {
     private String pagename;
     private String githubUrl;
     private User user;
-    private List<Board> boards;
-    private List<Card> cards;
+    private List<BoardDto> boards;
 }

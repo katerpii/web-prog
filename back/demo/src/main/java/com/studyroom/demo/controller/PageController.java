@@ -20,7 +20,9 @@ import com.studyroom.demo.entity.Card;
 import com.studyroom.demo.entity.Page;
 import com.studyroom.demo.entity.User;
 import com.studyroom.demo.repository.*;
+import com.studyroom.dto.BoardDto;
 import com.studyroom.dto.CardDataDto;
+import com.studyroom.dto.CardDto;
 import com.studyroom.dto.RenderPageDto;
 
 import jakarta.servlet.http.HttpSession;
@@ -102,12 +104,31 @@ public class PageController {
             Optional<Page> pageOptional = pageRepository.findById(pageId);
             if (pageOptional.isPresent()) {
                 Page page = pageOptional.get();
+
+                List<BoardDto> boardDtos = new ArrayList<>();
+                for (Board board : page.getBoards()) {
+                    List<CardDto> cardDtos = new ArrayList<>();
+                    for (Card card : board.getCards()) {
+                        cardDtos.add(CardDto.builder()
+                            .id(card.getCardId())
+                            .name(card.getCardName())
+                            .author(card.getAuthor())
+                            .startDate(card.getStartDate() != null ? card.getStartDate().toString() : "")
+                            .endDate(card.getEndDate() != null ? card.getEndDate().toString() : "")
+                            .build());
+                    }
+                    boardDtos.add(BoardDto.builder()
+                        .id(board.getBoradId())
+                        .status(board.getStatus())
+                        .cards(cardDtos)
+                        .build());
+                }
+
                 RenderPageDto form = RenderPageDto.builder()
                         .pagename(page.getPagename())
                         .githubUrl(page.getGithubUrl())
                         .user(page.getUser())
-                        .boards(page.getBoards())
-                        .cards(page.getCards())
+                        .boards(boardDtos)
                         .build();
                 return ResponseEntity.ok(form);
             }
@@ -124,10 +145,14 @@ public class PageController {
 
     @PostMapping("/api/save")
     public ResponseEntity<?> saveData(@RequestBody CardDataDto data) {
-        Board board = boardRepository.findByStatus(data.getStatus());
-        
-        if (board == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid board status.");
-        
+        if (data.getPageId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("pageId is required");
+        }
+        Optional<Board> boardOpt = boardRepository.findByStatusAndPage_PageId(data.getStatus(), data.getPageId());
+        if (boardOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid board status or pageId.");
+        }
+        Board board = boardOpt.get();
         Card card = Card.builder()
             .cardName(data.getCardName())
             .author(data.getAuthor())
@@ -136,10 +161,7 @@ public class PageController {
             .board(board)
             .page(board.getPage())
             .build();
-        
         Card saved = cardRepository.save(card);
-
-        // cardId 반환
         return ResponseEntity.ok(Map.of("cardId", saved.getCardId()));
     }
 
@@ -161,15 +183,30 @@ public class PageController {
     // }
 
     @PatchMapping("/api/card/{id}/move")
-    public ResponseEntity<?> moveCard(@PathVariable Integer id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> moveCard(@PathVariable Integer id, @RequestBody Map<String, Object> body) {
         Optional<Card> optionalCard = cardRepository.findById(id);
         if (!optionalCard.isPresent()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Card not found");
-
         Card card = optionalCard.get();
-        String newStatus = body.get("status");
-        Board newBoard = boardRepository.findByStatus(newStatus);
-        if (newBoard == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid board status");
-
+        String newStatus = (String) body.get("status");
+        Integer pageId = null;
+        if (body.containsKey("pageId")) {
+            Object pageIdObj = body.get("pageId");
+            if (pageIdObj instanceof Integer) {
+                pageId = (Integer) pageIdObj;
+            } else if (pageIdObj instanceof String) {
+                try {
+                    pageId = Integer.parseInt((String) pageIdObj);
+                } catch (NumberFormatException e) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid pageId format");
+                }
+            }
+        } else if (card.getPage() != null) {
+            pageId = card.getPage().getPageId();
+        }
+        if (pageId == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("pageId is required");
+        Optional<Board> newBoardOpt = boardRepository.findByStatusAndPage_PageId(newStatus, pageId);
+        if (newBoardOpt.isEmpty()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid board status or pageId");
+        Board newBoard = newBoardOpt.get();
         card.setBoard(newBoard);
         cardRepository.save(card);
         return ResponseEntity.ok("Board updated");
@@ -184,5 +221,24 @@ public class PageController {
 
         cardRepository.delete(optionalCard.get());
         return ResponseEntity.ok("Card deleted successfully");
+    }
+
+    @GetMapping("/api/cards")
+    public ResponseEntity<List<Map<String, Object>>> getAllCards() {
+        List<Card> cards = cardRepository.findAll();
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Card card : cards) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("cardId", card.getCardId());
+            map.put("cardName", card.getCardName());
+            map.put("author", card.getAuthor());
+            map.put("startDate", card.getStartDate());
+            map.put("endDate", card.getEndDate());
+            // board가 null일 수 있으니 방어
+            String status = card.getBoard() != null ? card.getBoard().getStatus() : "Scheduled";
+            map.put("status", status);
+            result.add(map);
+        }
+        return ResponseEntity.ok(result);
     }
 }

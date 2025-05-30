@@ -22,4 +22,5 @@ public class CardDataDto {
     private LocalDate startDate;
     private LocalDate endDate;
     private String status;
+    private Integer pageId;
 }
