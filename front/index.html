@@ -19,18 +19,18 @@
     <!-- 상단 버튼 영역 -->
     <div class="top-buttons">
       <div id="project-dropdown" class="project-header">
-        <span class="project-title">Side Project</span>
-        <hr><br>
-        <svg id="dropdown-icon" width="16" height="16" viewBox="0 0 24 24">
-          <path d="M7 10l5 5 5-5z"></path>
-        </svg>
+        <div class="project-title">Project Manager
+        <svg id="dropdown-icon" viewBox="0 0 20 20"><path d="M5 7l5 5 5-5z"/></svg>
+        </div>
         <div id="project-list" class="project-dropdown hidden"></div>
+      </div><br>
+      <div class="user-controls">
+        <div id="user-name">Not login yet</div>
+        <button>깃허브 링크</button>
+        <button class="login-btn">로그인</button>
+        <button class="logout-btn" style="display: none;">로그아웃</button>
+        <button>초대하기</button>
       </div>
-      <div id="user-name"></div>
-      <button>깃허브 링크</button>
-      <button class="login-btn">로그인</button>
-      <button class="logout-btn" style="display: none;">로그아웃</button>
-      <button>초대하기</button>
     </div>
 
      <section class="board">

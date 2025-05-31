@@ -3,7 +3,7 @@ let targetColumn = null;
 $(document).ready(function () {
   // url = new URL(window.location.href);
   const params = new URLSearchParams(window.location.search);
-  redirectUri = new URL("http://localhost:3000/index")
+  const redirectUri = new URL("http://localhost:3000/index")
 
   const pageId = params.get("page")
   const invite = params.get("invite")

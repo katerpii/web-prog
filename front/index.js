@@ -8,6 +8,7 @@ const GANTT_INIT_MONTHS = 12; // 초기 12개월(1년) 범위
 let currentDate = new Date();
 
 $(document).ready(function () {
+  loadDocumentList();
   const $modal = $('#modal');
   const $detailModal = $('#detail-modal');
 
@@ -223,6 +224,7 @@ $(document).ready(function () {
           author: response.author || owner
         });
         renderGanttChart();
+        scrollToCardStartDate(startDate);
         $('#modal').hide();
         clearModalInputs();
       },
@@ -485,7 +487,16 @@ function renderGanttChart() {
     const startIdx = Math.max(0, Math.floor((s - ganttStartDate) / (1000 * 60 * 60 * 24)));
     const endIdx = Math.min(days.length - 1, Math.floor((e - ganttStartDate) / (1000 * 60 * 60 * 24)));
     if (isNaN(startIdx) || isNaN(endIdx) || startIdx > endIdx) return;
-    const $bar = $(`<div class="gantt-bar" style="grid-column:${startIdx + 1} / ${endIdx + 2}; grid-row:${idx + 4};">${card.title}</div>`);
+    const statusClass = card.status === 'Scheduled'
+    ? 'scheduled'
+    : card.status === 'In Progress'
+      ? 'in-progress'
+      : card.status === 'Done'
+        ? 'done'
+        : '';
+
+    const $bar = $(`<div class="gantt-bar ${statusClass}" style="grid-column:${startIdx + 1} / ${endIdx + 2}; grid-row:${idx + 4};">${card.title}</div>`);
+
     $gantt.append($bar);
   });
 
@@ -500,6 +511,7 @@ function renderGanttChart() {
     'min-height': '200px',
     'overflow-x': 'auto'
   });
+
 }
 
 // 무한 스크롤: 좌/우 1년 단위 확장
@@ -561,7 +573,7 @@ function loadGanttCardsFromServer() {
         status: card.status,
         author: card.author
       }));
-      renderGanttChart();
+      renderGanttChart(true);
     },
     error: function() {
       alert("간트차트 카드 데이터를 불러오지 못했습니다.");
@@ -571,7 +583,6 @@ function loadGanttCardsFromServer() {
 
 // 페이지 로드 시 초기 렌더링
 $(window).on('load', function() {
-  renderGanttChart();
   loadGanttCardsFromServer();
 });
 
@@ -646,3 +657,28 @@ function connectGanttScrollToMonthLabel() {
 }
 
 
+function scrollToCardStartDate(startDateStr) {
+  const startDate = new Date(startDateStr);
+  startDate.setHours(0, 0, 0, 0);
+
+  const dayCellWidth = 44;
+  const days = [];
+  let d = new Date(ganttStartDate);
+  while (d <= ganttEndDate) {
+    days.push(new Date(d));
+    d.setDate(d.getDate() + 1);
+  }
+
+  const index = days.findIndex(d =>
+    d.getFullYear() === startDate.getFullYear() &&
+    d.getMonth() === startDate.getMonth() &&
+    d.getDate() === startDate.getDate()
+  );
+
+  if (index !== -1) {
+    const scrollTarget = index * dayCellWidth;
+    setTimeout(() => {
+      $('#gantt-chart')[0].scrollLeft = scrollTarget - ($('#gantt-chart').width() / 2) + (dayCellWidth / 2);
+    }, 0);
+  }
+}

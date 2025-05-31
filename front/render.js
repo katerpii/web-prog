@@ -50,11 +50,13 @@ $(document).ready(function () {
   // 드롭다운 열고 닫기
   $('#project-dropdown').on('click', function (e) {
     e.stopPropagation(); // 이벤트 전파 방지
+    $('.project-header').toggleClass('open');
     $('#project-list').toggleClass('hidden');
   });
 
   // 드롭다운 외부 클릭 시 닫기
   $(document).on('click', function () {
+    $('.project-header').removeClass('open');
     $('#project-list').addClass('hidden');
   });
 
@@ -82,17 +84,28 @@ $(document).ready(function () {
         $('body').addClass('logged-in');
         loadUserPage(user.id, pageId);
         if (userProject){
-          $projectTitle.empty();
+          $projectTitle.html(`
+            ${userProject.pagename}
+            <svg id="dropdown-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 7l5 5 5-5z"/>
+            </svg>
+          `);
 
           $projectList.empty();
-          $projectList.append(`<div class="project-item" data-id="${userProject.pageId}">${userProject.pagename}</div>`);
+            
+          $projectList.append(`<div class="project-item selected" data-id="${userProject.pageId}">${userProject.pagename}</div>`);
           invitedList.forEach(p => {
             $projectList.append(`<div class="project-item" data-id="${p.pageId}">${p.pagename}</div>`);
           });
           
           const $activeProject = $projectList.find(`.project-item[data-id="${pageId}"]`);
           if ($activeProject.length > 0) {
-            $projectTitle.text($activeProject.text());
+            $projectTitle.html(`
+              ${$activeProject.text()}
+              <svg id="dropdown-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 7l5 5 5-5z"/>
+              </svg>
+            `);
           } else {
             $projectTitle.text("Projects"); // fallback
           }
@@ -119,8 +132,8 @@ $(document).ready(function () {
       method: 'POST',
       xhrFields: { withCredentials: true },
       success: function () {
-        window.location.href = "http://localhost:3000/index";
         location.reload();
+        window.location.href = "http://localhost:3000/index";
       }
     });
   });

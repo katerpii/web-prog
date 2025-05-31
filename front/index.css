@@ -5,13 +5,7 @@ body {
    margin: 0;
    padding: 0;
   }
-#user-name {
-    margin-bottom: 0px;
-}  
 
-.logged-in #user-name {
-   margin-bottom: 20px;
-}
   .container {
    width: 90%;
    margin: auto;
@@ -52,8 +46,40 @@ body {
   transform: translateY(1px);
   box-shadow: none;
 }
+.user-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #1f1f1f;
+  border: 1px solid #333;
+  padding: 8px 14px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+#user-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: consolas;
+  color: #ddd;
+  margin-left: 12px;
+  padding: 4px 10px;
+  background-color: #2a2a2a;
+  border-radius: 6px;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1.5;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+#user-name:hover {
+  background-color: #3a3a3a;
+  transform: scale(1.02);
+  cursor: default;
+}
+
 /* 초대 모달  */
 #invite-modal {
+  height: auto !important;
   display: none;
   position: fixed;
   top: 20%;
@@ -71,7 +97,7 @@ body {
 
 /* 이메일 입력창 */
 #invite-email {
-  width: 100%;
+  width: 90%;
   padding: 12px;
   margin-bottom: 16px;
   border-radius: 8px;
@@ -375,6 +401,17 @@ width: 100%;
 */
 
 /* 툴팁 스타일 개선 */
+.gantt-bar.scheduled {
+  background-color: #f1ced3; 
+}
+
+.gantt-bar.in-progress {
+  background-color: rgba(11, 84, 120, 0.5);
+}
+
+.gantt-bar.done {
+  background-color:rgba(23, 85, 54, 0.5);
+}
 .gantt-bar[title]:hover::after {
   content: attr(title);
   position: absolute;
@@ -1152,7 +1189,7 @@ width: 100%;
   border-radius: 6px;
   padding: 4px 10px;
   margin-left: auto;
-  float:left;
+  float: right;
   font-size: 12px;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.2s ease;
