@@ -115,6 +115,7 @@ public class PageController {
                             .author(card.getAuthor())
                             .startDate(card.getStartDate() != null ? card.getStartDate().toString() : "")
                             .endDate(card.getEndDate() != null ? card.getEndDate().toString() : "")
+                            .status(board.getStatus()) // status 필드 추가
                             .build());
                     }
                     boardDtos.add(BoardDto.builder()

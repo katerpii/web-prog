@@ -1,4 +1,11 @@
+// ✅ 초기 범위: 2025년 1월 ~ 12월 설정, 카드 없어도 렌더링 보장
 let targetColumn = null;
+let ganttCards = []; // Gantt 차트에 표시할 카드 데이터 배열
+let ganttStartDate = new Date(2025, 0, 1);
+let ganttEndDate = new Date(2025, 11, 31);
+const GANTT_INIT_MONTHS = 12; // 초기 12개월(1년) 범위
+// 전역 변수로 currentDate 선언 및 초기화
+let currentDate = new Date();
 
 $(document).ready(function () {
   const $modal = $('#modal');
@@ -144,7 +151,7 @@ $(document).ready(function () {
     $detailModal.hide();
   });
 
-  $('#add-card-confirm').on('click', function () {
+  $('#add-card-confirm').off('click').on('click', function () {
     const name = $('#task-name').val().trim();
     const owner = $('#task-owner').val().trim();
     const startDate = $('#task-start').val();
@@ -155,37 +162,67 @@ $(document).ready(function () {
       return;
     }
 
-    const $newCard = $('<div class="card"></div>');
+    // pageId 추출
+    const params = new URLSearchParams(window.location.search);
+    const pageId = params.get("page");
+    if (!pageId) {
+      alert("pageId가 없습니다. URL을 확인하세요.");
+      return;
+    }
 
+    // 카드 정보 준비
+    const cardData = {
+      cardName: name,
+      author: owner,
+      startDate: startDate,
+      endDate: endDate,
+      status: targetColumn.closest('.column').data('status'),
+      pageId: pageId
+    };
+
+    // 1. 서버에 저장
     $.ajax({
       url: "http://localhost:3030/api/save",
       method: "POST",
       contentType: "application/json",
-      data: JSON.stringify({
-        cardName: name,
-        author: owner,
-        startDate: startDate,
-        endDate: endDate,
-        status: targetColumn.closest('.column').data('status') // 현재 칼럼의 상태
-      }),
+      data: JSON.stringify(cardData),
       success: function (response) {
-        console.log("카드 저장 완료");
-        const realCardId = response.cardId;
-        $newCard.attr({
-          'data-name': name,
-          'data-owner': owner,
-          'data-start': startDate,
-          'data-end': endDate,
-          'data-id': realCardId
+        // 2. 컬럼에 카드 DOM 바로 추가
+        const $card = $('<div class="card"></div>');
+        $card.attr({
+          'data-id': response.cardId || response.id,
+          'data-name': response.cardName || name,
+          'data-owner': response.author || owner,
+          'data-start': response.startDate || startDate,
+          'data-end': response.endDate || endDate,
+          'data-status': response.status || cardData.status
         });
-
-        $newCard.html(`
-          <strong>${name}</strong><br>
-          <small>${owner}</small>
+        $card.html(`
+          <strong>${response.cardName || name}</strong><br>
+          <small>${response.author || owner}</small>
           <button class="delete-card-btn">삭제</button>
         `);
-
-        targetColumn.append($newCard);
+        applyStatusStyle($card, response.status || cardData.status);
+        addDragAndDropEvents($card);
+        // 상세보기 모달 이벤트도 카드에 바인딩
+        $card.on('click', function (e) {
+          if ($(e.target).hasClass('delete-card-btn')) return;
+          $('#detail-title').text(`이름: ${response.cardName || name}`);
+          $('#detail-owner').text(`담당자: ${response.author || owner}`);
+          $('#detail-dates').text(`기간: ${(response.startDate || startDate) || ''} ~ ${(response.endDate || endDate) || ''}`);
+          $('#detail-modal').show();
+        });
+        targetColumn.append($card);
+        // 3. 간트차트도 즉시 반영
+        ganttCards.push({
+          id: response.cardId || response.id,
+          title: response.cardName || name,
+          startDate: response.startDate || startDate,
+          endDate: response.endDate || endDate,
+          status: response.status || cardData.status,
+          author: response.author || owner
+        });
+        renderGanttChart();
         $('#modal').hide();
         clearModalInputs();
       },
@@ -193,25 +230,6 @@ $(document).ready(function () {
         alert("카드 저장 실패: " + error.responseText);
       }
     });
-
-    $newCard.on('click', function () {
-      $('#detail-title').text(`이름: ${$(this).data('name')}`);
-      $('#detail-owner').text(`담당자: ${$(this).data('owner')}`);
-      $('#detail-dates').text(`기간: ${$(this).data('start')} ~ ${$(this).data('end')}`);
-      $detailModal.show();
-    });
-
-    const columnStatus = targetColumn.closest('.column').data('status');
-    applyStatusStyle($newCard, columnStatus);
-
-    addDragAndDropEvents($newCard);
-    targetColumn.append($newCard);
-
-    renderGanttChart();
-    saveCardDataToDB($newCard);
-
-    $modal.hide();
-    clearModalInputs();
   });
 
   $('.column').on('dragover', function (e) {
@@ -269,7 +287,30 @@ $(document).ready(function () {
   
 });
 
-$(document).on('click', '.delete-card-btn', function () {
+function addDragAndDropEvents($card) {
+  $card.attr('draggable', true);
+
+  $card.on('dragstart', function (e) {
+    e.originalEvent.dataTransfer.setData('text/plain', $(this).text());
+    $(this).addClass('dragging');
+  });
+
+  $card.on('dragend', function () {
+    $(this).removeClass('dragging');
+  });
+
+  // 카드 클릭 시 상세정보 모달 열기 (단, 삭제 버튼 클릭이 아닐 때만)
+  $card.on('click', function (e) {
+    if ($(e.target).hasClass('delete-card-btn')) return; // 삭제 버튼 클릭 시 무시
+    $('#detail-title').text(`이름: ${$(this).data('name')}`);
+    $('#detail-owner').text(`담당자: ${$(this).data('owner')}`);
+    $('#detail-dates').text(`기간: ${$(this).data('start')} ~ ${$(this).data('end')}`);
+    $('#detail-modal').show();
+  });
+}
+
+$(document).on('click', '.delete-card-btn', function (e) {
+  e.stopPropagation();
   if (!confirm("정말로 이 카드를 삭제하시겠습니까?")) return;
 
   const $card = $(this).closest('.card');
@@ -287,6 +328,7 @@ $(document).on('click', '.delete-card-btn', function () {
       console.log("카드 삭제 완료");
       $card.remove();
       renderGanttChart();
+      $('#detail-modal').hide(); // 삭제 성공 시에만 상세정보 모달 닫기
     },
     error: function (xhr) {
       alert("카드 삭제 실패: " + xhr.responseText);
@@ -365,288 +407,242 @@ $('#file-upload-btn').on('click', function() {
 // 페이지 로드 시 문서 목록 불러오기
 loadDocumentList();
 
-function applyStatusStyle($card, status) {
-  $card.removeClass('scheduled in-progress done');
-  if (status === 'Scheduled') $card.addClass('scheduled');
-  if (status === 'In Progress') $card.addClass('in-progress');
-  if (status === 'Done') $card.addClass('done');
-}
+// ===================== Notion 스타일 Gantt Chart 핵심 리팩터링 =====================
+// 1. 1년치 헤더와 바디는 카드가 없어도 항상 렌더링
+// 2. 좌/우 스크롤 시 1년 단위로 확장
+// 3. 카드 생성 시 입력한 날짜에 맞춰 간트바 자동 배치
 
-function clearModalInputs() {
-  $('#task-name').val('');
-  $('#task-owner').val('');
-}
-
-function addDragAndDropEvents($card) {
-  $card.attr('draggable', true);
-
-  $card.on('dragstart', function (e) {
-    e.originalEvent.dataTransfer.setData('text/plain', $(this).text());
-    $(this).addClass('dragging');
-  });
-
-  $card.on('dragend', function () {
-    $(this).removeClass('dragging');
-  });
-}
+// 기존 전역 변수 재사용 (ganttStartDate, ganttEndDate, ganttCards)
+let ganttExpanding = false;
 
 function renderGanttChart() {
   const $gantt = $('#gantt-chart');
   $gantt.empty();
 
-  const $cards = $('.card');
-  if ($cards.length === 0) return;
+  // 날짜 배열 생성
+  const dayCellWidth = 44;
+  let days = [];
+  let d = new Date(ganttStartDate);
+  while (d <= ganttEndDate) {
+    days.push(new Date(d));
+    d.setDate(d.getDate() + 1);
+  }
 
-  let earliestStart = new Date();
-  $cards.each(function () {
-    const start = $(this).data('start');
-    if (start) {
-      const d = new Date(start);
-      if (d < earliestStart) earliestStart = d;
+  // 헤더 생성 (3줄: 년/월/일)
+  const $header = $('<div class="gantt-header"></div>');
+  // grid-template-columns를 days.length에 맞춰 통일
+  const gridStyle = `display: grid; grid-template-columns: repeat(${days.length}, ${dayCellWidth}px);`;
+
+  // 연도 헤더
+  const $yearHeader = $('<div class="gantt-header-years"></div>').attr('style', gridStyle);
+  let prevYear = null, yearStart = 0;
+  days.forEach((date, i) => {
+    const y = date.getFullYear();
+    if (y !== prevYear) {
+      if (prevYear !== null) {
+        $yearHeader.append(`<div class='gantt-cell-year' style='grid-column: ${yearStart + 1} / ${i + 1};'>${prevYear}년</div>`);
+      }
+      prevYear = y;
+      yearStart = i;
     }
   });
-
-  const centerDate = new Date(earliestStart);
-  const daysBefore = 5;
-  const daysAfter = 60;
-  const totalDays = daysBefore + daysAfter;
-
-  const startDate = new Date(centerDate);
-  startDate.setDate(centerDate.getDate() - daysBefore);
-
-  const $header = $('<div class="gantt-header"></div>');
-  for (let i = 0; i < totalDays; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
-
-    const $cell = $('<div class="gantt-cell"></div>');
-    $cell.attr('data-date', date.toISOString());
-    $cell.text(`${date.getMonth() + 1}/${date.getDate()}`);
-    $header.append($cell);
+  // 마지막 연도 셀
+  if (prevYear !== null) {
+    $yearHeader.append(`<div class='gantt-cell-year' style='grid-column: ${yearStart + 1} / ${days.length + 1};'>${prevYear}년</div>`);
   }
+
+  // 월 헤더 (월 전체 구간 병합, 한 번만 표시)
+  const $monthHeader = $('<div class="gantt-header-months"></div>').attr('style', gridStyle);
+  let prevMonth = null, monthStart = 0;
+  days.forEach((date, i) => {
+    const m = date.getMonth() + 1;
+    if (m !== prevMonth) {
+      if (prevMonth !== null) {
+        $monthHeader.append(`<div class='gantt-cell-month' style='grid-column: ${monthStart + 1} / ${i + 1};'>${prevMonth}월</div>`);
+      }
+      prevMonth = m;
+      monthStart = i;
+    }
+  });
+  // 마지막 월 셀
+  if (prevMonth !== null) {
+    $monthHeader.append(`<div class='gantt-cell-month' style='grid-column: ${monthStart + 1} / ${days.length + 1};'>${prevMonth}월</div>`);
+  }
+
+  // 일 헤더
+  const $dayHeader = $('<div class="gantt-header-days"></div>').attr('style', gridStyle);
+  days.forEach((date, i) => {
+    $dayHeader.append(`<div class='gantt-cell-day'>${date.getDate()}</div>`);
+  });
+
+  $header.append($yearHeader).append($monthHeader).append($dayHeader);
   $gantt.append($header);
 
-  $cards.each(function () {
-    const $card = $(this);
-    const name = $card.data('name');
-    const start = $card.data('start');
-    const end = $card.data('end');
-    if (!start || !end) return;
-
-    const startObj = new Date(start);
-    const endObj = new Date(end);
-    const offset = Math.floor((startObj - startDate) / (1000 * 60 * 60 * 24));
-    const duration = Math.max(1, (endObj - startObj) / (1000 * 60 * 60 * 24) + 1);
-
-    const $row = $('<div class="gantt-row"></div>');
-    const $bar = $('<div class="gantt-bar"></div>').text(name);
-    $bar.css({
-      left: `${offset * 30}px`,
-      width: `${duration * 30}px`
-    });
-
-    if ($card.hasClass('scheduled')) $bar.addClass('scheduled');
-    else if ($card.hasClass('in-progress')) $bar.addClass('in-progress');
-    else if ($card.hasClass('done')) $bar.addClass('done');
-
-    $row.append($bar);
-    $gantt.append($row);
+  // 카드(간트바) 렌더링: 각 카드마다 한 줄씩 grid-row 지정
+  ganttCards.forEach((card, idx) => {
+    let s = card.startDate ? new Date(card.startDate) : new Date(ganttStartDate);
+    let e = card.endDate ? new Date(card.endDate) : new Date(ganttEndDate);
+    const startIdx = Math.max(0, Math.floor((s - ganttStartDate) / (1000 * 60 * 60 * 24)));
+    const endIdx = Math.min(days.length - 1, Math.floor((e - ganttStartDate) / (1000 * 60 * 60 * 24)));
+    if (isNaN(startIdx) || isNaN(endIdx) || startIdx > endIdx) return;
+    const $bar = $(`<div class="gantt-bar" style="grid-column:${startIdx + 1} / ${endIdx + 2}; grid-row:${idx + 4};">${card.title}</div>`);
+    $gantt.append($bar);
   });
 
-  $gantt.scrollLeft(((new Date() - startDate) / (1000 * 60 * 60 * 24)) * 30);
+  // Gantt 전체를 grid로, 헤더와 바디 align 통일
+  $gantt.css({
+    'display': 'grid',
+    'grid-template-columns': `repeat(${days.length}, ${dayCellWidth}px)`,
+    'grid-auto-rows': '40px',
+    'align-items': 'center',
+    'position': 'relative',
+    'background': '#181818',
+    'min-height': '200px',
+    'overflow-x': 'auto'
+  });
 }
 
-function connectGanttScrollToMonthLabel() {
-  const $gantt = $('#gantt-chart');
-  const $label = $('.gantt-month-label');
-  const dayWidth = 30;
-
-  $gantt.on('scroll', function () {
-    const scrollLeft = $gantt.scrollLeft();
-    const offsetDays = Math.floor(scrollLeft / dayWidth);
-    const $firstCell = $gantt.find('.gantt-cell').first();
-    if (!$firstCell.length) return;
-
-    const firstDate = new Date($firstCell.data('date'));
-    const currentDate = new Date(firstDate);
-    currentDate.setDate(firstDate.getDate() + offsetDays);
-    $label.text(`${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월`);
-
-    const maxScroll = $gantt[0].scrollWidth - $gantt.width();
-
-    if (scrollLeft > maxScroll - 200) {
-      expandGanttDays(30, 'right');
-    }
-    if (scrollLeft < 200) {
-      expandGanttDays(30, 'left');
-    }
-  });
-
-  const $firstCell = $gantt.find('.gantt-cell').first();
-  if ($firstCell.length) {
-    const startDate = new Date($firstCell.data('date'));
-    $label.text(`${startDate.getFullYear()}년 ${startDate.getMonth() + 1}월`);
+// 무한 스크롤: 좌/우 1년 단위 확장
+$('#gantt-chart').off('scroll').on('scroll', function () {
+  if (ganttExpanding) return;
+  const $box = $(this);
+  // 좌측 끝 근처
+  if ($box.scrollLeft() < 100) {
+    ganttExpanding = true;
+    ganttStartDate.setFullYear(ganttStartDate.getFullYear() - 1);
+    renderGanttChart();
+    $box.scrollLeft($box.scrollLeft() + 365 * 44); // 1년치 만큼 오른쪽으로 이동
+    ganttExpanding = false;
   }
+  // 우측 끝 근처
+  if ($box[0].scrollWidth - $box.scrollLeft() - $box.outerWidth() < 100) {
+    ganttExpanding = true;
+    ganttEndDate.setFullYear(ganttEndDate.getFullYear() + 1);
+    renderGanttChart();
+    ganttExpanding = false;
+  }
+});
+
+// 카드 추가 시 입력 날짜에 맞춰 간트바 자동 배치
+function addGanttCard(card) {
+  // 서버 동기화 후 카드 목록 재로드
+  const params = new URLSearchParams(window.location.search);
+  const pageId = params.get("page");
+  if (!pageId) {
+    alert("pageId가 없습니다. URL을 확인하세요.");
+    return;
+  }
+  card.pageId = pageId;
+  $.ajax({
+    url: "http://localhost:3030/api/save",
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(card),
+    success: function() {
+      loadGanttCardsFromServer();
+    },
+    error: function(xhr) {
+      alert("카드 저장 실패: " + xhr.responseText);
+    }
+  });
 }
 
-let currentDate = new Date();
+// 서버에서 카드 목록 불러오기
+function loadGanttCardsFromServer() {
+  $.ajax({
+    url: "http://localhost:3030/api/cards",
+    method: "GET",
+    success: function(cards) {
+      ganttCards = cards.map(card => ({
+        id: card.cardId,
+        title: card.cardName,
+        startDate: card.startDate ? card.startDate.slice(0, 10) : "",
+        endDate: card.endDate ? card.endDate.slice(0, 10) : "",
+        status: card.status,
+        author: card.author
+      }));
+      renderGanttChart();
+    },
+    error: function() {
+      alert("간트차트 카드 데이터를 불러오지 못했습니다.");
+    }
+  });
+}
 
+// 페이지 로드 시 초기 렌더링
+$(window).on('load', function() {
+  renderGanttChart();
+  loadGanttCardsFromServer();
+});
+
+// ====== 유틸 함수: ReferenceError 방지용 ======
 function renderCalendar(date) {
-  const $calendarDays = $("#calendar-days");
-  const $monthYear = $("#month-year");
-  $calendarDays.empty();
-
+  if (!date) date = new Date();
+  $('#month-year').text(`${date.getFullYear()}년 ${date.getMonth() + 1}월`);
+  const $days = $('#calendar-days');
+  $days.empty();
   const year = date.getFullYear();
   const month = date.getMonth();
-  $monthYear.text(`${year}년 ${month + 1}월`);
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const lastDate = new Date(year, month + 1, 0).getDate();
-
-  for (let i = 0; i < firstDay; i++) {
-    $calendarDays.append("<div class='day-cell empty'></div>");
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startDayOfWeek = firstDay.getDay();
+  const totalDays = lastDay.getDate();
+  // 빈 칸 채우기 (1일 전까지)
+  for (let i = 0; i < startDayOfWeek; i++) {
+    $days.append('<div class="day-cell empty"></div>');
   }
-
-  for (let day = 1; day <= lastDate; day++) {
-    const thisDate = new Date(year, month, day);
-    const $dayDiv = $("<div class='day-cell'></div>").text(day);
-
-    if (thisDate.toDateString() === new Date().toDateString()) {
-      $dayDiv.addClass("today");
-    }
-
-    // ✅ 날짜 클릭 시 우측 패널에 표시
-    $dayDiv.on("click", function () {
-      const dateStr = `${year}년 ${month + 1}월 ${day}일`;
-      $("#selected-date-text").text(`📌 선택된 날짜: ${dateStr}`);
-      $("#calendar-note").val(""); // 초기화
-      $(".calendar-entry-panel").show();
-    });
-
-    $calendarDays.append($dayDiv);
+  // 날짜 채우기
+  for (let d = 1; d <= totalDays; d++) {
+    const cellDate = new Date(year, month, d);
+    const isToday = cellDate.toDateString() === new Date().toDateString();
+    $days.append(`<div class="day-cell${isToday ? ' today' : ''}" data-date="${year}-${month + 1}-${d}">${d}</div>`);
   }
+  // 날짜 클릭 시 일정 입력 패널 표시
+  $('.day-cell').off('click').on('click', function() {
+    if ($(this).hasClass('empty')) return;
+    const dateStr = $(this).data('date');
+    $('#selected-date-text').text('📌 선택된 날짜: ' + dateStr);
+    $('.calendar-entry-panel').show();
+  });
 }
 
-function changeMonth(diff) {
-  currentDate.setMonth(currentDate.getMonth() + diff);
-  renderCalendar(currentDate);
+function changeMonth(offset) {
+  if (!window.currentDate) window.currentDate = new Date();
+  window.currentDate.setMonth(window.currentDate.getMonth() + offset);
+  renderCalendar(window.currentDate);
+}
+
+function applyStatusStyle($card, status) {
+  $card.removeClass('scheduled in-progress done');
+  if (!status) return;
+  if (status === 'Scheduled') $card.addClass('scheduled');
+  else if (status === 'In Progress') $card.addClass('in-progress');
+  else if (status === 'Done') $card.addClass('done');
+}
+
+function clearModalInputs() {
+  $('#task-name').val('');
+  $('#task-owner').val('');
+  $('#task-start').val('');
+  $('#task-end').val('');
 }
 
 function switchTab(tabName) {
-  $(".tab-content").removeClass("active");
-  $(".tab").removeClass("active");
-  $(`#${tabName}-view`).addClass("active");
-  $(`.tab[onclick*="${tabName}"]`).addClass("active");
-}
-
-function saveCardDataToDB($card) {
-  const cardData = {
-    cardName: $card.data('name'),
-    author: $card.data('owner'),
-    startDate: $card.data('start'),
-    endDate: $card.data('end'),
-    status: $card.closest('.column').data('status'),
-  };
-
-  $.ajax({
-    url: 'http://localhost:3030/api/save',
-    method: 'POST',
-    contentType: 'application/json',
-    xhrFields: {
-      withCredentials: true
-    },
-    data: JSON.stringify(cardData),
-    success: function (response) {
-      console.log('Card data saved successfully');
-    },
-    error: function (error) {
-      console.error('Failed to save card data', error);
-    }
-  });
-}
-
-$(document).on("dragend", ".card", function () {
-  const $card = $(this);
-  const cardId = $card.data("id");
-  const newBoard = $card.closest(".column").data("status");
-
-  if (!cardId || !newBoard) {
-    console.warn("카드 ID 또는 새로운 보드 상태가 없습니다.");
-    return;
+  $('.tab').removeClass('active');
+  $('.tab-content').removeClass('active');
+  if (tabName === 'calendar') {
+    $('.tab').eq(0).addClass('active');
+    $('#calendar-view').addClass('active');
+  } else if (tabName === 'gantt') {
+    $('.tab').eq(1).addClass('active');
+    $('#gantt-view').addClass('active');
   }
-
-  $.ajax({
-    url: `http://localhost:3030/api/card/${cardId}/move`,
-    method: "PATCH",
-    contentType: "application/json",
-    data: JSON.stringify({ status: newBoard }),
-    success: function () {
-      console.log("카드 상태가 성공적으로 변경되었습니다.");
-    },
-    error: function (xhr) {
-      alert("카드 이동 실패: " + xhr.responseText);
-    }
-  });
-});
-
-function updateCardStatus($card) {
-  const cardId = $card.data("id");
-  const newStatus = $card.closest(".column").data("status");
-
-  if (!cardId || !newStatus) return;
-
-  $.ajax({
-    url: `http://localhost:3030/api/card/${cardId}/move`,
-    method: "PATCH",
-    contentType: "application/json",
-    data: JSON.stringify({ status: newStatus }),
-    success: function () {
-      console.log("카드 상태 업데이트 완료");
-    },
-    error: function (xhr) {
-      alert("카드 상태 업데이트 실패: " + xhr.responseText);
-    }
-  });
 }
 
-document.getElementById('markdown-input').addEventListener('input', function () {
-  const markdownText = this.value;
-  const html = marked.parse(markdownText);
-  document.getElementById('markdown-preview').innerHTML = html;
-});
-
-// 날짜 클릭 시 일정 입력 패널 표시
-$("#calendar-days").on("click", ".day-cell", function () {
-  const day = $(this).text();
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth() + 1;
-  selectedCalendarDate = `${year}-${month}-${day}`;
-
-  $("#selected-date-text").text(`📌 선택된 날짜: ${selectedCalendarDate}`);
-  $(".calendar-entry-panel").show();
-});
-
-// 저장 버튼 이벤트
-$('#save-calendar-entry').on('click', function () {
-  const note = $('#calendar-note').val().trim();
-
-  if (!selectedCalendarDate || !note) {
-    alert("날짜를 선택하고 메모를 작성하세요.");
-    return;
-  }
-
-  const $targetDay = $("#calendar-days .day-cell").filter(function () {
-    return $(this).text() === String(parseInt(selectedCalendarDate.split("-")[2]));
-  });
-
-  $targetDay.attr("title", note); // 툴팁용
-  $targetDay.addClass("has-note"); // 스타일 줄 때
-
-  // 초기화
-  $('#calendar-note').val('');
-  selectedCalendarDate = null;
-  $('#selected-date-text').text('날짜를 클릭하세요');
-
-});
+// Gantt 차트 스크롤 시 월 헤더와 동기화 (더미 함수, 실제 구현 필요시 보완)
+function connectGanttScrollToMonthLabel() {
+  // 예시: 실제로는 스크롤 위치에 따라 월 헤더 강조 등 구현 가능
+  // 현재는 오류 방지용 빈 함수
+}
 
 

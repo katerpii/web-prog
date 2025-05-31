@@ -300,65 +300,106 @@ width: 100%;
   min-height: 150px;
 }
 
-#gantt-chart {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  position: relative;
-}
-
+/* 기존 간트차트 스타일 중복 방지용 주석 처리 (Notion 스타일로 대체) */
+/*
 .gantt-header {
   display: flex;
   gap: 0px;
+  margin-left: 90px;
 }
-
+.gantt-cell {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  line-height: 40px;
+  color: #fff;
+  text-align: center;
+  border-right: 1px solid #444;
+  background: #232323;
+  position: relative;
+}
 .gantt-row {
   position: relative;
-  height: 40px; /* ← 충분한 높이로 늘리기 */
+  height: 40px;
   overflow: visible;
   background-color: transparent;
   border-bottom: 1px solid #333;
 }
-
-.gantt-cell {
-  width: 30px;
-  height: 30px;
-  font-size: 10px;
-  line-height: 30px;
-  color: #ccc;
-  text-align: center;
-  border-right: 1px solid #444;
+.gantt-row span {
+  display: inline-block;
+  min-width: 80px;
+  font-size: 13px;
+  color: #eee;
+  position: absolute;
+  left: 0;
+  top: 8px;
+  z-index: 1;
 }
-
-.gantt-month-label {
-  font-size: 16px;
-  font-weight: 600;
-  color: #ccc;
-  margin-bottom: 8px;
-}
-
-/* 실험용
 .gantt-bar {
-  background-color: red !important;
-  z-index: 10;
-}*/
-
-/* Scheduled */
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  min-width: 32px;
+  min-height: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: box-shadow 0.18s, transform 0.18s;
+  position: absolute;
+  z-index: 2;
+  opacity: 0.98;
+  border: none;
+  background: #444;
+  color: #fff;
+}
+.gantt-bar:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.28);
+  transform: scale(1.03);
+  opacity: 1;
+}
 .gantt-bar.scheduled {
-  background: linear-gradient(90deg, #f8bfc6, #f4a6b8); /* 연분홍 */
+  background: linear-gradient(90deg, #f8bfc6, #f4a6b8);
   color: #2a0d14;
 }
-
-/* In Progress */
 .gantt-bar.in-progress {
-  background: linear-gradient(90deg, #91c9f8, #689ce6); /* 파스텔 블루 */
+  background: linear-gradient(90deg, #91c9f8, #689ce6);
   color: #102544;
 }
-
-/* Done */
 .gantt-bar.done {
-  background: linear-gradient(90deg, #90e3b8, #59cda2); /* 파스텔 민트 */
+  background: linear-gradient(90deg, #90e3b8, #59cda2);
   color: #0e3c28;
+}
+*/
+
+/* 툴팁 스타일 개선 */
+.gantt-bar[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 50%;
+  top: -38px;
+  transform: translateX(-50%);
+  background: #232323;
+  color: #ffd36f;
+  padding: 7px 14px;
+  font-size: 13px;
+  border-radius: 8px;
+  white-space: pre-line;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  z-index: 10;
+  pointer-events: none;
+}
+/* 스크롤바 스타일 개선 */
+#gantt-chart::-webkit-scrollbar {
+  height: 10px;
+  background: #232323;
+  border-radius: 8px;
+}
+#gantt-chart::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 8px;
 }
 
   .doc-list {
@@ -943,7 +984,6 @@ width: 100%;
   border-radius: 20px;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04);
   font-family: 'Segoe UI', sans-serif;
-  box-sizing: border-box;
 }
 
 /* 제목 */
@@ -1104,4 +1144,162 @@ width: 100%;
 }
 .notice-item.pinned {
   border-color: #f59e0b;
+}
+.delete-card-btn {
+  background-color: transparent;
+  color: white;
+  border: 1px solid #fefcfc;
+  border-radius: 6px;
+  padding: 4px 10px;
+  margin-left: auto;
+  float:left;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.delete-card-btn:hover {
+  background-color: #ff6b6b;
+  color: #1b1b1b;
+  transform: translateY(-1px);
+}
+
+/* Notion 스타일 간트차트 2줄 헤더 및 바/행/툴팁/스크롤바 */
+.gantt-header-year {
+  display: flex;
+  margin-left: 120px;
+  background: #161616;
+  height: 32px;
+  align-items: center;
+  border-bottom: 1px solid #232323;
+}
+.gantt-cell-year {
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffe082;
+  background: #161616;
+  text-align: center;
+  line-height: 32px;
+  border-right: 1px solid #232323;
+  letter-spacing: 1px;
+}
+.gantt-header-month {
+  display: flex;
+  margin-left: 120px;
+  background: #181818;
+  height: 28px;
+  align-items: center;
+  border-bottom: 1px solid #232323;
+}
+.gantt-cell-month {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: #181818;
+  text-align: center;
+  line-height: 28px;
+  border-right: 1px solid #232323;
+}
+.gantt-header-day {
+  display: flex;
+  margin-left: 120px;
+  background: #181818;
+  height: 28px;
+  align-items: center;
+}
+.gantt-cell-day {
+  font-size: 13px;
+  color: #aaa;
+  background: #181818;
+  text-align: center;
+  line-height: 28px;
+  border-right: 1px solid #232323;
+}
+.gantt-row {
+  position: relative;
+  height: 38px;
+  border-bottom: 1px solid #232323;
+  display: flex;
+  align-items: center;
+  background: none;
+}
+.gantt-row-label {
+  min-width: 120px;
+  max-width: 120px;
+  font-size: 14px;
+  color: #eee;
+  font-weight: 600;
+  position: absolute;
+  left: 0;
+  top: 7px;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gantt-bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  height: 28px;
+  border-radius: 8px;
+  margin: 4px 0;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 0 12px;
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  color: #222;
+  transition: transform 0.2s ease;
+}
+
+.gantt-bar:hover {
+  transform: scale(1.03);
+}
+
+.gantt-bar.scheduled {
+  background: linear-gradient(90deg, #f8bfc6, #f4a6b8);
+  color: #2a0d14;
+}
+.gantt-bar.in-progress {
+  background: linear-gradient(90deg, #91c9f8, #689ce6);
+  color: #102544;
+}
+.gantt-bar.done {
+  background: linear-gradient(90deg, #90e3b8, #59cda2);
+  color: #0e3c28;
+}
+.gantt-bar[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 50%;
+  top: -38px;
+  transform: translateX(-50%);
+  background: #232323;
+  color: #ffd36f;
+  padding: 7px 14px;
+  font-size: 13px;
+  border-radius: 8px;
+  white-space: pre-line;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  z-index: 10;
+  pointer-events: none;
+}
+#gantt-chart {
+  display: grid;
+  grid-auto-rows: 40px;
+  align-items: center;
+  position: relative;
+  background: #181818;
+  min-height: 200px;
+}
+#gantt-chart::-webkit-scrollbar {
+  height: 10px;
+  background: #232323;
+  border-radius: 8px;
+}
+#gantt-chart::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 8px;
 }

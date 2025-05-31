@@ -11,4 +11,5 @@ public class CardDto {
     private String author;
     private String startDate;
     private String endDate;
+    private String status;
 }

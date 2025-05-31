@@ -119,6 +119,7 @@ $(document).ready(function () {
       method: 'POST',
       xhrFields: { withCredentials: true },
       success: function () {
+        window.location.href = "http://localhost:3000/index";
         location.reload();
       }
     });
@@ -176,10 +177,31 @@ $(document).ready(function () {
         $(this).find('.card-list').append($draggingCard);
         const status = $(this).data('status');
         applyStatusStyle($draggingCard, status);
-        renderGanttChart();
         updateCardStatus($draggingCard);
       }
     });
+  }
+
+  function renderCard(card, boardStatus) {
+    // 카드의 status가 없으면 boardStatus 또는 'Scheduled'로 fallback
+    const status = card.status || boardStatus || 'Scheduled';
+    const $card = $('<div class="card" draggable="true"></div>');
+    $card.attr({
+      'data-id': card.id !== undefined ? String(card.id) : '',
+      'data-name': card.name !== undefined ? String(card.name) : '',
+      'data-owner': card.author !== undefined ? String(card.author) : '',
+      'data-start': card.startDate !== undefined ? String(card.startDate) : '',
+      'data-end': card.endDate !== undefined ? String(card.endDate) : '',
+      'data-status': status
+    });
+    $card.html(`
+      <strong>${card.name || ''}</strong><br>
+      <small>${card.author || ''}</small>
+      <button class="delete-card-btn">삭제</button>
+    `);
+    applyStatusStyle($card, status);
+    addDragAndDropEvents($card);
+    return $card;
   }
 
   // 카드 및 컬럼 렌더링
@@ -202,12 +224,7 @@ $(document).ready(function () {
       pageData.boards.forEach(board => {
         if (board.cards && board.cards.length > 0) {
           board.cards.forEach(card => {
-            let $card = $(`<div class="card" draggable="true" data-id="${card.id}">
-                            <span>${card.name}</span>
-                            <span>${card.startDate} ~ ${card.endDate}</span>
-                            <span>${card.author}</span>
-                          </div>`);
-            addDragAndDropEvents($card);
+            const $card = renderCard(card, board.status);
             $(`.column[data-status="${board.status}"] .card-list`).append($card);
           });
         }
@@ -231,14 +248,14 @@ $(document).ready(function () {
 function updateCardStatus($card) {
   const cardId = $card.data("id");
   const newStatus = $card.closest(".column").data("status");
-
+  const params = new URLSearchParams(window.location.search);
+  const pageId = params.get('page');
   if (!cardId || !newStatus) return;
-
   $.ajax({
     url: `http://localhost:3030/api/card/${cardId}/move`,
     method: "PATCH",
     contentType: "application/json",
-    data: JSON.stringify({ status: newStatus }),
+    data: JSON.stringify({ status: newStatus, pageId: pageId }),
     success: function () {
       console.log("카드 상태 업데이트 완료");
     },

@@ -101,29 +101,20 @@
           <span id="month-year"></span>
           <button onclick="changeMonth(1)">▶</button>
         </div>
-
         <div class="calendar">
           <div class="day-names">
             <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
           </div>
-          <div id="calendar-days" class="days-grid">
-            <div>
-
-            </div>
-          </div>
- 
-
-      <div class="calendar-entry-panel" style="display: none;">
-        <h3>📌 일정 입력</h3>
-        <p id="selected-date-text">날짜를 클릭하세요</p>
-        <textarea id="calendar-note" placeholder="일정 메모 작성..." rows="6"></textarea>
-        <button id="save-calendar-entry">저장</button>
+          <div id="calendar-days" class="days-grid"></div>
+        </div>
+        <div class="calendar-entry-panel" style="display: none;">
+          <h3>📌 일정 입력</h3>
+          <p id="selected-date-text">날짜를 클릭하세요</p>
+          <textarea id="calendar-note" placeholder="일정 메모 작성..." rows="6"></textarea>
+          <button id="save-calendar-entry">저장</button>
+        </div>
       </div>
-      
-    </div>
-
       <div id="gantt-view" class="tab-content">
-        <div class="gantt-month-label"></div>
         <div class="gantt-box">
           <div id="gantt-chart"></div>
         </div>
