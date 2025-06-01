@@ -693,14 +693,15 @@ width: 100%;
   }
   
   .list-box {
-   width: 95%;
+    min-height: 40px;
+    width: 95%;
     font-size: 14px;
     font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
     color: rgba(255, 255, 255, 0.443);
     border-radius: 4px;
     position: relative;
-   margin-top: 10px;
-   margin-left: 30px;
+    margin-top: 10px;
+    margin-left: 30px;
   }
 
 .modal {
@@ -1366,11 +1367,29 @@ input[type="file"]:hover {
   background: #444;
   border-radius: 8px;
 }
+.file-info {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.file-buttons {
+  position: absolute;
+  display: none; /* 기본은 숨김 */
+  top: 50%;
+  transform: translateY(-50%);
+  right: 0;
+}
+
+.file-info:hover .file-buttons {
+  display: inline-flex; /* hover하면 보이게 */
+}
 
 /* 파일 업로드, 다운로드, 삭제 버튼 스타일 */
-.file-upload-btn, .file-download-btn, .file-delete-btn {
+.file-download-btn, .file-delete-btn {
   padding: 6px 14px;
-  margin-left: 4px;
+  margin-left: 10px;
   font-size: 14px;
   font-weight: 600;
   border: none;

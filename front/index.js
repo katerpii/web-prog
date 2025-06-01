@@ -1,4 +1,3 @@
-// ✅ 초기 범위: 2025년 1월 ~ 12월 설정, 카드 없어도 렌더링 보장
 let targetColumn = null;
 let ganttCards = []; // Gantt 차트에 표시할 카드 데이터 배열
 let ganttStartDate = new Date(2025, 0, 1);
@@ -14,7 +13,9 @@ $(document).ready(function () {
 
   url = new URL(window.location.href);
   params = new URLSearchParams(window.location.search);
-  
+  $('.github-link').on('click', function() {
+    window.location.href = 'http://localhost:3000/redirect?target=https://www.github.com'
+  })
   // 로그인 버튼
   $('.login-btn').on('click', function () {
     window.location.href = `http://localhost:3000/login?${params}`;
@@ -70,67 +71,45 @@ $(document).ready(function () {
       }
     });
   });
-
-  $('.google-login').on('click', function () {
-    $.ajax({
-      url: 'http://localhost:3030/login/oauth2/google',
-      method: 'GET',
-      xhrFields: {
-        withCredentials: true
-      },
-      success: function (response) {
-        const auth = response.authorization;
-        const loginUrl =
-          `${auth.authorizationEndpoint}?` +
-          `client_id=${encodeURIComponent(auth.clientId)}` +
-          `&redirect_uri=${encodeURIComponent(auth.redirectUrl)}` +
-          `&response_type=${encodeURIComponent(auth.responseType)}` +
-          `&scope=${encodeURIComponent(auth.scope)}` +
-          `&state=${encodeURIComponent(auth.state)}` +
-          `&prompt=consent`;
-
-        window.location.href = loginUrl;
-      },
-      error: function (error) {
-        console.error('로그인 요청 실패:', error);
+    $('.list-box').on('click', function (e) {
+      const $target = $(e.target);
+      if (!$target.hasClass('upload-input') && !$target.closest('.file-buttons').length) {
+        const $input = $(this).find('.upload-input');
+        if ($input.length === 1 && !$input.prop('disabled')) {
+          $input.trigger('click');
+        }
       }
     });
+// 바디 전체에서 `.upload-input` 변경 감지 (삭제 후 복원된 input에도 동작함)
+$(document).off('change', '.upload-input').on('change', '.upload-input', function (e) {
+  e.stopPropagation();
+  const file = this.files[0];
+  if (!file) return;
+
+  const $box = $(this).closest('.list-box');
+  const docType = $box.data('doc-type');
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('docType', docType);
+
+  $.ajax({
+    url: 'http://localhost:3030/documents/upload',
+    method: 'POST',
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: function () {
+      alert(`[${docType}] 업로드 성공!`);
+      loadDocumentList(); // 여기서 다시 input 들어오고, 이벤트도 유지됨
+    },
+    error: function () {
+      alert(`[${docType}] 업로드 실패!`);
+    }
   });
+});
 
-  $('.github-login').on('click', function () {
-    $.ajax({
-      url: 'http://localhost:3030/login/oauth2/github',
-      method: 'GET',
-      xhrFields: {
-        withCredentials: true
-      },
-      success: function (response) {
-        const state = JSON.stringify({ 
-          is_invite: params.has("invite"),
-          invite_code: params.get("invite"),
-          redirect_uri: "http://localhost:3000/index"
-          // 로그인: http://localhost:3000/login
-          // 초대 url: http://localhost:3000/index?page={page}&invite=asdsadsad
-         });
 
-         if (params.get("page")) redirect_uri + `?${page}`;
-        
-        const auth = response.authorization;
-        const loginUrl =
-          `${auth.authorizationEndpoint}?` +
-          `client_id=${encodeURIComponent(auth.clientId)}` +
-          `&redirect_uri=${encodeURIComponent(auth.redirectUrl)}` +
-          `&response_type=${encodeURIComponent(auth.responseType)}` +
-          `&scope=${encodeURIComponent(auth.scope)}` +
-          `&state=${btoa(state)}` +
-          `&prompt=consent`;
-        
-        window.location.href = loginUrl;
-      },
-      error: function (error) {
-        console.error('로그인 요청 실패:', error);
-      }
-    });
   });
 
   $(document).on('click', '.add-btn', function (e) {
@@ -287,7 +266,7 @@ $(document).ready(function () {
   $('.calendar-entry-panel').hide();
   });
   
-});
+
 
 function addDragAndDropEvents($card) {
   $card.attr('draggable', true);
@@ -343,73 +322,80 @@ function loadDocumentList() {
   $.ajax({
     url: 'http://localhost:3030/documents/list',
     method: 'GET',
-    success: function(files) {
-      const $docList = $('.uploaded-list');
-      // 기존 업로드 파일 목록 제거
-      $docList.find('.uploaded-file').remove();
-      if (files.length === 0) return;
-      files.forEach(function(filename) {
-        const $li = $('<li class="uploaded-file"></li>');
-        $li.text('📄 ' + filename + ' ');
-        const $downloadBtn = $('<button class="file-download-btn">다운로드</button>');
-        $downloadBtn.on('click', function() {
+    success: function (files) {
+      console.log(files);
+
+      // 먼저 모든 list-box에 대해 초기화: 업로드 영역 비우고 업로드 input 추가
+      $('.list-box').each(function () {
+        const $box = $(this);
+        $box.find('.uploaded-filename').empty();
+
+        if ($box.find('.upload-input').length === 0) {
+          $box.append('<input type="file" class="upload-input">');
+        }
+      });
+
+      // 서버에 있는 파일 기준으로 렌더링
+      files.forEach(function (filename) {
+        const match = filename.match(/^(.+?)__/);  // 예: "프로젝트_제안서__파일명.pdf"
+        const docType = match ? match[1] : null;
+        if (!docType) return;
+
+        const $box = $(`.list-box[data-doc-type="${docType}"]`);
+        if ($box.length === 0) return;
+
+        const $filenameArea = $box.find('.uploaded-filename');
+        $filenameArea.empty();
+
+        $box.find('.upload-input').remove();
+
+        const cleanName = filename.replace(docType + '__', '');
+
+        const fileInfoHtml = `
+          <div class="file-info">
+            <span class="filename-text">${cleanName}</span>
+            <div class="file-buttons">
+              <button class="file-download-btn">다운로드</button>
+              <button class="file-delete-btn">삭제</button>
+            </div>
+          </div>
+        `;
+
+        const $fileInfo = $(fileInfoHtml);
+        $filenameArea.append($fileInfo);
+
+        $fileInfo.find('.file-download-btn').on('click', function () {
           window.location.href = `http://localhost:3030/documents/download/${encodeURIComponent(filename)}`;
         });
-        const $deleteBtn = $('<button class="file-delete-btn">삭제</button>');
-        $deleteBtn.on('click', function() {
+
+        $fileInfo.find('.file-delete-btn').on('click', function () {
           if (!confirm('정말 삭제하시겠습니까?')) return;
           $.ajax({
             url: `http://localhost:3030/documents/delete/${encodeURIComponent(filename)}`,
             method: 'DELETE',
-            success: function() {
+            success: function () {
               alert('삭제 성공!');
-              loadDocumentList();
+              loadDocumentList(); // 다시 로딩하면 input 복원됨
             },
-            error: function() {
+            error: function () {
               alert('삭제 실패!');
             }
           });
         });
-        $li.append($downloadBtn).append($deleteBtn);
-        $docList.append($li);
       });
     },
-    error: function() {
-      alert('문서 목록을 불러오지 못했습니다.');
+    error: function (err) {
+      alert('문서 목록을 불러오지 못했습니다.', err);
     }
   });
 }
 
+
 // 업로드 버튼 이벤트
-$('#file-upload-btn').on('click', function() {
-  const fileInput = document.getElementById('file-upload-input');
-  if (!fileInput.files.length) {
-    alert('업로드할 파일을 선택하세요.');
-    return;
-  }
-  const formData = new FormData();
-  formData.append('file', fileInput.files[0]);
-  $.ajax({
-    url: 'http://localhost:3030/documents/upload',
-    method: 'POST',
-    data: formData,
-    processData: false,
-    contentType: false,
-    success: function() {
-      alert('업로드 성공!');
-      fileInput.value = '';
-      loadDocumentList();
-    },
-    error: function() {
-      alert('업로드 실패!');
-    }
-  });
-});
 
 // 페이지 로드 시 문서 목록 불러오기
-loadDocumentList();
 
-// ===================== Notion 스타일 Gantt Chart 핵심 리팩터링 =====================
+// ===================== Gantt Chart =====================
 // 1. 1년치 헤더와 바디는 카드가 없어도 항상 렌더링
 // 2. 좌/우 스크롤 시 1년 단위로 확장
 // 3. 카드 생성 시 입력한 날짜에 맞춰 간트바 자동 배치
@@ -650,10 +636,8 @@ function switchTab(tabName) {
   }
 }
 
-// Gantt 차트 스크롤 시 월 헤더와 동기화 (더미 함수, 실제 구현 필요시 보완)
+// Gantt 차트 스크롤 시 월 헤더와 동기화 (dummy)
 function connectGanttScrollToMonthLabel() {
-  // 예시: 실제로는 스크롤 위치에 따라 월 헤더 강조 등 구현 가능
-  // 현재는 오류 방지용 빈 함수
 }
 
 

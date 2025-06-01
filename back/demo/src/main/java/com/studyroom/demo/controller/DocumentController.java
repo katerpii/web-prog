@@ -14,16 +14,25 @@ public class DocumentController {
     private final String uploadDir = "/app/data/documents";
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file,
+                                            @RequestParam("docType") String docType) {
         try {
             Files.createDirectories(Paths.get(uploadDir));
-            Path filePath = Paths.get(uploadDir, file.getOriginalFilename());
+
+            // 새로운 파일 이름: [docType]__[원본파일명]
+            String safeDocType = docType.replaceAll("[^a-zA-Z0-9가-힣_]", "_");
+            String originalFileName = Paths.get(file.getOriginalFilename()).getFileName().toString();
+            String newFileName = safeDocType + "__" + originalFileName;
+
+            Path filePath = Paths.get(uploadDir, newFileName);
             file.transferTo(filePath);
-            return ResponseEntity.ok("업로드 성공: " + file.getOriginalFilename());
+
+            return ResponseEntity.ok("업로드 성공: " + newFileName);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("업로드 실패: " + e.getMessage());
         }
     }
+
 
     @GetMapping("/download/{filename:.+}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {

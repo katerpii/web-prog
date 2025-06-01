@@ -26,7 +26,7 @@
       </div><br>
       <div class="user-controls">
         <div id="user-name">Not login yet</div>
-        <button>깃허브 링크</button>
+        <button class="github-link">깃허브 링크</button>
         <button class="login-btn">로그인</button>
         <button class="logout-btn" style="display: none;">로그아웃</button>
         <button>초대하기</button>
@@ -127,20 +127,49 @@
     <!-- 왼쪽: API 문서 영역 -->
     <section class="api-section">
       <h2>Documents🔌</h2>
-      <ul class="doc-list">
-        <li>
-          <input type="file" id="file-upload-input" style="display:inline-block; width:auto;">
-          <button id="file-upload-btn" class="file-upload-btn">업로드</button>
-        </li>
-      </ul>
       <ul class="doc-list uploaded-list">
-        <li>📄 API 명세서<div class="list-box"><div class="column">README.md</div></div></li>
-        <li>📄 회의록<div class="list-box"><input type="file"></div></li>
-        <li>📄 프로젝트 제안서<div class="list-box"><div class="column">프로젝트_제안서_챗봇시스템.pdf<br>프로젝트_제안서_스마트사물함.pdf</div></div></li>
-        <li>📄 프로젝트 계획서<div class="list-box"><div class="column">개발_계획서_스마트사물함.pdf<br>개발_계획서_챗봇시스템.pdf</div></div></li>
-        <li>📄 시스템 요구사항 명세서<div class="list-box"><div class="column">파일 업로드</div></div></li>
-        <li>📄 시스템 설계 명세서<div class="list-box"><div class="column">시스템_설계_명세서_스마트사물함.pdf</div></div></li>
-        <li>📄 프로젝트 최종 보고서<div class="list-box"><input type="file"></div></li>
+        <li>
+          📄 프로젝트 제안서
+          <div class="list-box" data-doc-type="프로젝트_제안서">
+            <input type="file" class="upload-input">
+            <div class="uploaded-filename"></div>
+          </div>
+        </li>
+        <li>
+          📄 프로젝트 계획서
+          <div class="list-box" data-doc-type="프로젝트_계획서">
+            <input type="file" class="upload-input">
+            <div class="uploaded-filename"></div>
+          </div>
+        </li>
+        <li>
+          📄 시스템 요구사항 명세서
+          <div class="list-box" data-doc-type="시스템_요구사항_명세서">
+            <input type="file" class="upload-input">
+            <div class="uploaded-filename"></div>
+          </div>
+        </li>  
+        <li>
+          📄 시스템 설계 명세서
+          <div class="list-box" data-doc-type="시스템_설계_명세서">
+            <input type="file" class="upload-input">
+            <div class="uploaded-filename"></div>
+          </div>
+        </li>  
+        <li>
+          📄 API 명세서
+          <div class="list-box" data-doc-type="API_명세서">
+            <input type="file" class="upload-input">
+            <div class="uploaded-filename"></div>
+          </div>
+        </li>  
+        <li>
+          📄 프로젝트 최종 보고서
+          <div class="list-box" data-doc-type="프로젝트_최종_보고서">
+            <input type="file" class="upload-input">
+            <div class="uploaded-filename"></div>
+          </div>
+        </li>
       </ul>
     </section>
 
