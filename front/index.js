@@ -344,18 +344,18 @@ function loadDocumentList() {
     url: 'http://localhost:3030/documents/list',
     method: 'GET',
     success: function(files) {
-      const $docList = $('.doc-list');
+      const $docList = $('.uploaded-list');
       // 기존 업로드 파일 목록 제거
       $docList.find('.uploaded-file').remove();
       if (files.length === 0) return;
       files.forEach(function(filename) {
         const $li = $('<li class="uploaded-file"></li>');
         $li.text('📄 ' + filename + ' ');
-        const $downloadBtn = $('<button>다운로드</button>');
+        const $downloadBtn = $('<button class="file-download-btn">다운로드</button>');
         $downloadBtn.on('click', function() {
           window.location.href = `http://localhost:3030/documents/download/${encodeURIComponent(filename)}`;
         });
-        const $deleteBtn = $('<button>삭제</button>');
+        const $deleteBtn = $('<button class="file-delete-btn">삭제</button>');
         $deleteBtn.on('click', function() {
           if (!confirm('정말 삭제하시겠습니까?')) return;
           $.ajax({

@@ -33,8 +33,14 @@ public class DocumentController {
             if (!resource.exists()) {
                 return ResponseEntity.notFound().build();
             }
+            // 파일 확장자에 따라 Content-Type 결정
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
             return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                .header(HttpHeaders.CONTENT_TYPE, contentType)
                 .body(resource);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
