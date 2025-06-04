@@ -8,7 +8,7 @@
 docker pull mysql:8.0
 ```
 
-
+<br><br>
 
 
 
@@ -24,6 +24,7 @@ docker compose up --build
 그런 다음 http://localhost:3000 에 접속하세요.
 
 
+<br><br>
 
 
 
@@ -31,6 +32,7 @@ docker compose up --build
 ----------------------------------------
 
 github 또는 google 계정으로 로그인할 수 있습니다.
+<br><br>
 
 
 4. 초대하기
